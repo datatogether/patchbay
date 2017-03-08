@@ -46,13 +46,7 @@ type config struct {
 
 	// How long before a url is considered stale, in hours.
 	StaleDurationHours time.Duration `json:"stale_duration_hours"`
-	// crawl urls?
-	Crawl bool
-	// Weather or not the crawler respects robots.txt
-	Polite bool
-	// how long to wait between requests. one day this'll be dynamically
-	// modifiable
-	CrawlDelaySeconds time.Duration `json:"crawl_delay_seconds"`
+
 	// Content Types to Store
 	StoreContentTypes []string
 
@@ -68,13 +62,6 @@ type config struct {
 	AwsSecretAccessKey string `json:"AWS_SECRET_ACCESS_KEY"`
 	// path to store & retrieve data from
 	AwsS3BucketPath string `json:"AWS_S3_BUCKET_PATH"`
-
-	// seed        = flag.String("seed", "", "seed URL")
-	// cancelAfter = flag.Duration("cancelafter", 0, "automatically cancel the fetchbot after a given time")
-	// cancelAtURL = flag.String("cancelat", "", "automatically cancel the fetchbot at a given URL")
-	// stopAfter   = flag.Duration("stopafter", 0, "automatically stop the fetchbot after a given time")
-	// stopAtURL   = flag.String("stopat", "", "automatically stop the fetchbot at a given URL")
-	// memStats    = flag.Duration("memstats", 0, "display memory statistics at a given interval")
 
 	// setting HTTP_AUTH_USERNAME & HTTP_AUTH_PASSWORD
 	// will enable basic http auth for the server. This is a single

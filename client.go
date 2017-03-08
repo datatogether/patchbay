@@ -127,7 +127,7 @@ func (c *Client) HandleAction(data []byte) {
 	if err := json.Unmarshal(data, &action); err != nil {
 		sendClientResponse(c, &ClientResponse{
 			Type:  "PARSE_ERROR",
-			Error: fmt.Errorf("action parsing error type: %s", err.Error()),
+			Error: fmt.Sprintf("action parsing error type: %s", err.Error()),
 		})
 		return
 	}

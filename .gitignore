@@ -1,4 +1,6 @@
 .DS_Store
 config.json
-context-connect
+config.production.json
+config.test.json
+patchbay
 gin-bin

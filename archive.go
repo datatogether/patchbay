@@ -50,7 +50,7 @@ func ArchiveUrl(db sqlQueryExecable, url string, done func(err error)) (*Url, []
 
 			// need a sleep here to avoid bombing server with requests
 			// tooooo hard
-			time.Sleep(cfg.CrawlDelaySeconds)
+			time.Sleep(time.Second * 3)
 		}
 	}(db, links)
 
@@ -66,4 +66,17 @@ func ArchiveUrl(db sqlQueryExecable, url string, done func(err error)) (*Url, []
 	}()
 
 	return u, links, err
+}
+
+func ArchiveUrlSync(db sqlQueryExecable, url string) (*Url, error) {
+	done := make(chan error)
+	u, _, err := ArchiveUrl(db, url, func(err error) {
+		done <- err
+	})
+	if err != nil {
+		return u, err
+	}
+
+	err = <-done
+	return u, err
 }
