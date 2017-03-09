@@ -50,6 +50,7 @@ var ClientReqActions = []ClientAction{
 	SearchReqAct{},
 	ArchiveUrlAct{},
 	FetchUrlAct{},
+	FetchOutboundLinksAct{},
 }
 
 type MsgReqAct struct {
@@ -139,6 +140,38 @@ func (a *FetchUrlAct) Exec() (res *ClientResponse) {
 		Type:   a.SuccessType(),
 		Schema: "URL",
 		Data:   u,
+	}
+}
+
+// FetchOutboundLinksAct fetches a url's outbound links
+type FetchOutboundLinksAct struct {
+	err error
+	Url string
+}
+
+func (FetchOutboundLinksAct) Type() string        { return "URL_FETCH_OUTBOUND_LINKS_REQUEST" }
+func (FetchOutboundLinksAct) SuccessType() string { return "URL_FETCH_OUTBOUND_LINKS_SUCCESS" }
+func (FetchOutboundLinksAct) FailureType() string { return "URL_FETCH_OUTBOUND_LINKS_FAILURE" }
+
+func (FetchOutboundLinksAct) Parse(data json.RawMessage) ClientRequestAction {
+	a := &FetchOutboundLinksAct{}
+	a.err = json.Unmarshal(data, a)
+	return a
+}
+
+func (a *FetchOutboundLinksAct) Exec() (res *ClientResponse) {
+	links, err := ReadDstLinks(appDB, &Url{Url: a.Url})
+	if err != nil {
+		return &ClientResponse{
+			Type:  a.FailureType(),
+			Error: err.Error(),
+		}
+	}
+
+	return &ClientResponse{
+		Type:   a.SuccessType(),
+		Schema: "LINK_ARRAY",
+		Data:   links,
 	}
 }
 
