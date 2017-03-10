@@ -1,9 +1,12 @@
 package main
 
-import "fmt"
+import (
+	"database/sql"
+	"fmt"
+)
 
 func ListUrls(db sqlQueryable, limit, skip int) ([]*Url, error) {
-	rows, err := appDB.Query(fmt.Sprintf("select %s from urls limit $1 offset $2", urlCols()), limit, skip)
+	rows, err := db.Query(fmt.Sprintf("select %s from urls limit $1 offset $2", urlCols()), limit, skip)
 	if err != nil {
 		return nil, err
 	}
@@ -28,11 +31,26 @@ func UnfetchedUrls(db sqlQueryable, limit int) ([]*Url, error) {
 	if limit == 0 {
 		limit = 50
 	}
-	rows, err := appDB.Query(fmt.Sprintf("select %s from urls where last_head is null limit $1", urlCols()), limit)
+	rows, err := db.Query(fmt.Sprintf("select %s from urls where last_head is null limit $1", urlCols()), limit)
 	if err != nil {
 		logger.Println(err.Error())
 		return nil, err
 	}
+	return UnmarshalUrls(rows)
+}
+
+func UrlsForHash(db sqlQueryable, hash string) ([]*Url, error) {
+	rows, err := db.Query(fmt.Sprintf("select %s from urls where hash = $1", urlCols()), hash)
+	if err != nil {
+		logger.Println(err.Error())
+		return nil, err
+	}
+	return UnmarshalUrls(rows)
+}
+
+// UnmarshalUrls takes an sql cursor & returns a slice of url pointers
+// expects columns to math urlCols()
+func UnmarshalUrls(rows *sql.Rows) ([]*Url, error) {
 	defer rows.Close()
 
 	urls := []*Url{}

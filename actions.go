@@ -28,14 +28,6 @@ type ServerRequestAction interface {
 	Send()
 }
 
-// type MessageAction struct {
-// 	actionType `json:"type"`
-// 	Message    string `json:"message"`
-// }
-
-// func (m MessageAction) Type() string {
-// }
-
 type ClientResponse struct {
 	Type    string      `json:"type"`
 	Error   string      `json:"error,omitempty"`
@@ -51,6 +43,8 @@ var ClientReqActions = []ClientAction{
 	ArchiveUrlAct{},
 	FetchUrlAct{},
 	FetchOutboundLinksAct{},
+	FetchContentUrlsAction{},
+	FetchContentConsensusAction{},
 }
 
 type MsgReqAct struct {
@@ -203,5 +197,76 @@ func (a *ArchiveUrlAct) Exec() (res *ClientResponse) {
 		Type:   a.SuccessType(),
 		Schema: "URL",
 		Data:   url,
+	}
+}
+
+// FetchContentUrlsAction triggers archiving a url
+type FetchContentUrlsAction struct {
+	err  error
+	Hash string
+}
+
+func (FetchContentUrlsAction) Type() string        { return "CONTENT_URLS_REQUEST" }
+func (FetchContentUrlsAction) SuccessType() string { return "CONTENT_URLS_SUCCESS" }
+func (FetchContentUrlsAction) FailureType() string { return "CONTENT_URLS_FAILURE" }
+
+func (FetchContentUrlsAction) Parse(data json.RawMessage) ClientRequestAction {
+	a := &FetchContentUrlsAction{}
+	a.err = json.Unmarshal(data, a)
+	return a
+}
+
+func (a *FetchContentUrlsAction) Exec() (res *ClientResponse) {
+	urls, err := UrlsForHash(appDB, a.Hash)
+	if err != nil {
+		return &ClientResponse{
+			Type:  a.FailureType(),
+			Error: err.Error(),
+		}
+	}
+	return &ClientResponse{
+		Type:   a.SuccessType(),
+		Schema: "URL_ARRAY",
+		Data:   urls,
+	}
+}
+
+// FetchContentConsensusAction triggers archiving a url
+type FetchContentConsensusAction struct {
+	err  error
+	Hash string
+}
+
+func (FetchContentConsensusAction) Type() string        { return "CONTENT_CONSENSUS_REQUEST" }
+func (FetchContentConsensusAction) SuccessType() string { return "CONTENT_CONSENSUS_SUCCESS" }
+func (FetchContentConsensusAction) FailureType() string { return "CONTENT_CONSENSUS_FAILURE" }
+
+func (FetchContentConsensusAction) Parse(data json.RawMessage) ClientRequestAction {
+	a := &FetchContentConsensusAction{}
+	a.err = json.Unmarshal(data, a)
+	return a
+}
+
+func (a *FetchContentConsensusAction) Exec() (res *ClientResponse) {
+	// urls, err := UrlsForHash(appDB, a.Hash)
+	// if err != nil {
+	//   return &ClientResponse{
+	//     Type:  a.FailureType(),
+	//     Error: err.Error(),
+	//   }
+	// }
+	return &ClientResponse{
+		Type:   a.SuccessType(),
+		Schema: "CONSENSUS",
+		Data: map[string]interface{}{
+			"subject": a.Hash,
+			"title": map[string]interface{}{
+				"this is just a test": 3,
+			},
+			"format": map[string]interface{}{
+				"html":      2,
+				"text/html": 1,
+			},
+		},
 	}
 }
