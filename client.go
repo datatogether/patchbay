@@ -94,6 +94,7 @@ func (c *Client) writePump() {
 				return
 			}
 
+			// c.conn.WriteJSON()
 			w, err := c.conn.NextWriter(websocket.TextMessage)
 			if err != nil {
 				return
@@ -101,11 +102,11 @@ func (c *Client) writePump() {
 			w.Write(message)
 
 			// Add queued chat messages to the current websocket message.
-			n := len(c.send)
-			for i := 0; i < n; i++ {
-				w.Write(newline)
-				w.Write(<-c.send)
-			}
+			// n := len(c.send)
+			// for i := 0; i < n; i++ {
+			// 	w.Write(newline)
+			// 	w.Write(<-c.send)
+			// }
 
 			if err := w.Close(); err != nil {
 				return
@@ -126,20 +127,32 @@ func (c *Client) HandleAction(data []byte) {
 		Data      json.RawMessage
 	}{}
 	if err := json.Unmarshal(data, &action); err != nil {
-		sendClientResponse(c, &ClientResponse{
+		c.SendResponse(&ClientResponse{
 			Type:  "PARSE_ERROR",
 			Error: fmt.Sprintf("action parsing error type: %s", err.Error()),
 		})
 		return
 	}
-
-	// @TODO - This looks a lot like a muxer...
-	if strings.HasSuffix(action.Type, "REQUEST") {
+	// TODO - This looks a lot like a muxer...
+	if action.Type == "URL_ARCHIVE_REQUEST" {
+		act := struct {
+			Url string
+		}{}
+		if err := json.Unmarshal(action.Data, &act); err != nil {
+			c.SendResponse(&ClientResponse{
+				Type:  "PARSE_ERROR",
+				Error: fmt.Sprintf("action parsing error: %s", err.Error()),
+			})
+			return
+		}
+		c.ArchiveUrl(appDB, action.RequestId, act.Url)
+	} else if strings.HasSuffix(action.Type, "REQUEST") {
 		c.HandleRequestAction(action.Type, action.RequestId, action.Data)
 	}
 }
 
-func sendClientResponse(c *Client, res *ClientResponse) {
+func (c *Client) SendResponse(res *ClientResponse) {
+	// TODO - switch client to use "conn.SendJSON" for this stuff
 	data, err := json.Marshal(res)
 	if err != nil {
 		// TODO - handle "internal server parsing error" here
@@ -148,13 +161,16 @@ func sendClientResponse(c *Client, res *ClientResponse) {
 		return
 	}
 	c.send <- data
+	// if err := c.conn.WriteJSON(res); err != nil {
+	// 	logger.Println(err.Error())
+	// }
 }
 
 func (c *Client) HandleRequestAction(req string, reqId string, data json.RawMessage) {
 	for _, t := range ClientReqActions {
 		if t.Type() == req {
 			res := t.Parse(reqId, data).Exec()
-			sendClientResponse(c, res)
+			c.SendResponse(res)
 		}
 	}
 }

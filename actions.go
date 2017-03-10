@@ -304,13 +304,6 @@ func (FetchContentConsensusAction) Parse(reqId string, data json.RawMessage) Cli
 }
 
 func (a *FetchContentConsensusAction) Exec() (res *ClientResponse) {
-	// urls, err := UrlsForHash(appDB, a.Hash)
-	// if err != nil {
-	//   return &ClientResponse{
-	//     Type:  a.FailureType(),
-	//     Error: err.Error(),
-	//   }
-	// }
 	return &ClientResponse{
 		Type:      a.SuccessType(),
 		RequestId: a.RequestId,
