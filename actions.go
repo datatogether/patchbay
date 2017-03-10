@@ -47,6 +47,8 @@ var ClientReqActions = []ClientAction{
 	FetchOutboundLinksAct{},
 	FetchContentUrlsAction{},
 	FetchContentConsensusAction{},
+	FetchMetadataAction{},
+	SaveMetadataAction{},
 }
 
 type ReqAction struct {
@@ -318,5 +320,110 @@ func (a *FetchContentConsensusAction) Exec() (res *ClientResponse) {
 				"text/html": 1,
 			},
 		},
+	}
+}
+
+// FetchMetadataAction triggers archiving a url
+type FetchMetadataAction struct {
+	ReqAction
+	UserId      string `json:"userId"`
+	SubjectHash string `json:"subjectHash"`
+	Title       string `json:"title"`
+}
+
+func (FetchMetadataAction) Type() string        { return "METADATA_REQUEST" }
+func (FetchMetadataAction) SuccessType() string { return "METADATA_SUCCESS" }
+func (FetchMetadataAction) FailureType() string { return "METADATA_FAILURE" }
+
+func (FetchMetadataAction) Parse(reqId string, data json.RawMessage) ClientRequestAction {
+	a := &FetchMetadataAction{}
+	a.RequestId = reqId
+	a.err = json.Unmarshal(data, a)
+	return a
+}
+
+func (a *FetchMetadataAction) Exec() (res *ClientResponse) {
+	// TODO - hack for now
+	metaBytes := []byte{}
+	data := map[string]interface{}{}
+
+	// TODO - hack for now
+	if err := appDB.QueryRow("select meta from urls where hash = $1 limit 1", a.SubjectHash).Scan(&metaBytes); err != nil {
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
+
+	if string(metaBytes) == "null" {
+		return &ClientResponse{
+			Type:      a.SuccessType(),
+			RequestId: a.RequestId,
+		}
+	}
+
+	if err := json.Unmarshal(metaBytes, &data); err != nil {
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
+
+	logger.Println(data)
+
+	return &ClientResponse{
+		Type:      a.SuccessType(),
+		RequestId: a.RequestId,
+		Schema:    "METADATA",
+		Data:      data,
+	}
+}
+
+// SaveMetadataAction triggers archiving a url
+type SaveMetadataAction struct {
+	ReqAction
+	UserId      string `json:"userId"`
+	SubjectHash string `json:"subjectHash"`
+	Title       string `json:"title"`
+}
+
+func (SaveMetadataAction) Type() string        { return "METADATA_SAVE_REQUEST" }
+func (SaveMetadataAction) SuccessType() string { return "METADATA_SAVE_SUCCESS" }
+func (SaveMetadataAction) FailureType() string { return "METADATA_SAVE_FAILURE" }
+
+func (SaveMetadataAction) Parse(reqId string, data json.RawMessage) ClientRequestAction {
+	a := &SaveMetadataAction{}
+	a.RequestId = reqId
+	a.err = json.Unmarshal(data, a)
+	return a
+}
+
+func (a *SaveMetadataAction) Exec() (res *ClientResponse) {
+	// TODO - hack for now
+	data, err := json.Marshal(a)
+	if err != nil {
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
+
+	// TODO - hack for now
+	if _, err := appDB.Exec("update urls set meta = $2 where hash = $1", a.SubjectHash, data); err != nil {
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
+
+	return &ClientResponse{
+		Type:      a.SuccessType(),
+		RequestId: a.RequestId,
+		Schema:    "METADATA",
+		Data:      a,
 	}
 }

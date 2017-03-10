@@ -135,7 +135,7 @@ func UrlSetMetadataHandler(w http.ResponseWriter, r *http.Request, _ httprouter.
 	}
 
 	defer r.Body.Close()
-	meta := []interface{}{}
+	meta := map[string]interface{}{}
 	if err := json.NewDecoder(r.Body).Decode(&meta); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, fmt.Sprintf("json parse err: %s", err.Error()))
