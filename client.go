@@ -121,8 +121,9 @@ func (c *Client) writePump() {
 
 func (c *Client) HandleAction(data []byte) {
 	action := struct {
-		Type string `json:"type"`
-		Data json.RawMessage
+		Type      string
+		RequestId string
+		Data      json.RawMessage
 	}{}
 	if err := json.Unmarshal(data, &action); err != nil {
 		sendClientResponse(c, &ClientResponse{
@@ -134,7 +135,7 @@ func (c *Client) HandleAction(data []byte) {
 
 	// @TODO - This looks a lot like a muxer...
 	if strings.HasSuffix(action.Type, "REQUEST") {
-		c.HandleRequestAction(action.Type, action.Data)
+		c.HandleRequestAction(action.Type, action.RequestId, action.Data)
 	}
 }
 
@@ -149,10 +150,10 @@ func sendClientResponse(c *Client, res *ClientResponse) {
 	c.send <- data
 }
 
-func (c *Client) HandleRequestAction(req string, data json.RawMessage) {
+func (c *Client) HandleRequestAction(req string, reqId string, data json.RawMessage) {
 	for _, t := range ClientReqActions {
 		if t.Type() == req {
-			res := t.Parse(data).Exec()
+			res := t.Parse(reqId, data).Exec()
 			sendClientResponse(c, res)
 		}
 	}
