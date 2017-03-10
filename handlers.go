@@ -167,8 +167,8 @@ func UrlSetMetadataHandler(w http.ResponseWriter, r *http.Request, _ httprouter.
 	w.Write(data)
 }
 
-// HomeHandler renders the home page
-func HomeHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+// WebappHandler renders the home page
+func WebappHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	renderTemplate(w, "index.html")
 }
 

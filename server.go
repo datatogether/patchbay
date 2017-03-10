@@ -38,14 +38,14 @@ func main() {
 	// initialize a router to handle requests
 	r := httprouter.New()
 
-	r.GET("/", middleware(HomeHandler))
-
-	r.GET("/urls", middleware(UrlsViewHandler))
-	r.GET("/url", middleware(UrlMetadataHandler))
-	r.POST("/url/meta", middleware(UrlSetMetadataHandler))
-
-	r.POST("/context", middleware(SaveUrlContextHandler))
-	r.DELETE("/context", middleware(DeleteUrlContextHandler))
+	r.GET("/", middleware(WebappHandler))
+	r.GET("/url", middleware(WebappHandler))
+	r.GET("/content/:hash", middleware(WebappHandler))
+	r.GET("/metadata/:hash", middleware(WebappHandler))
+	r.GET("/settings", middleware(WebappHandler))
+	r.GET("/settings/keys", middleware(WebappHandler))
+	r.GET("/users/:user", middleware(WebappHandler))
+	r.GET("/signup", middleware(WebappHandler))
 
 	r.GET("/ws", middleware(HandleWebsocketUpgrade))
 
