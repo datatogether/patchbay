@@ -371,7 +371,7 @@ func (a *FetchMetadataAction) Exec() (res *ClientResponse) {
 		}
 	}
 
-	logger.Println(data)
+	// logger.Println(data)
 
 	return &ClientResponse{
 		Type:      a.SuccessType(),
@@ -387,6 +387,7 @@ type SaveMetadataAction struct {
 	UserId      string `json:"userId"`
 	SubjectHash string `json:"subjectHash"`
 	Title       string `json:"title"`
+	Description string `json:"description"`
 }
 
 func (SaveMetadataAction) Type() string        { return "METADATA_SAVE_REQUEST" }
@@ -413,6 +414,7 @@ func (a *SaveMetadataAction) Exec() (res *ClientResponse) {
 
 	// TODO - hack for now
 	if _, err := appDB.Exec("update urls set meta = $2 where hash = $1", a.SubjectHash, data); err != nil {
+		logger.Println(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
 			RequestId: a.RequestId,
