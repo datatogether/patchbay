@@ -1,0 +1,22 @@
+{
+	"URL_ROOT" : "",
+	"TLS" : false,
+	"AWS_REGION" : "",
+	"AWS_S3_BUCKET_NAME" : "",
+	"AWS_S3_BUCKET_PATH" : "",
+	"PORT" : "",
+
+	"HTTP_AUTH_USERNAME" : "",
+	"HTTP_AUTH_PASSWORD" : "",
+
+	"POSTGRES_DB_URL" : "",
+	"PUBLIC_KEY" : "",
+
+	"template_data" : {
+		"title" : "Context",
+    "webappScripts" : [
+      "/js/vendor.min.js",
+      "/js/app.min.js"
+    ]
+	}
+}

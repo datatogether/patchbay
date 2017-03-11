@@ -1,5 +1,4 @@
 .DS_Store
-config.json
 config.production.json
 config.test.json
 patchbay
