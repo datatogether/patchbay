@@ -1,5 +1,5 @@
 -- name: drop-all
-DROP TABLE IF EXISTS urls, links, domains, alerts, metadata, supress_alerts, snapshots;
+DROP TABLE IF EXISTS urls, links, domains, alerts, context, metadata, supress_alerts, snapshots;
 
 -- name: create-domains
 CREATE TABLE domains (

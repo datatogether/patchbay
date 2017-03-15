@@ -61,6 +61,7 @@ func NextMetadata(db sqlQueryable, keyId, subject string) (*Metadata, error) {
 // combination if one exists
 func LatestMetadata(db sqlQueryable, keyId, subject string) (m *Metadata, err error) {
 	row := db.QueryRow(fmt.Sprintf("select %s from metadata where key_id = $1 and subject = $2 order by time_stamp desc", metadataCols()), keyId, subject)
+	m = &Metadata{}
 	err = m.UnmarshalSQL(row)
 	return
 }
@@ -103,6 +104,7 @@ func (m *Metadata) calcHash() error {
 
 // WriteMetadata creates a snapshot record in the DB from a given Url struct
 func (m *Metadata) Write(db sqlQueryExecable) error {
+	// TODO - check for valid subject hash
 
 	m.Timestamp = time.Now().Round(time.Second)
 	if err := m.calcHash(); err != nil {

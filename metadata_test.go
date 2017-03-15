@@ -12,10 +12,13 @@ func metadataEqual(a, b *Metadata) bool {
 	return a.Timestamp.Equal(b.Timestamp) && a.Subject == b.Subject && a.KeyId == b.KeyId && a.Prev == b.Prev
 }
 
-func TestWriteMetadata(t *testing.T) {
+func TestMetadata(t *testing.T) {
 	defer resetTestData(appDB, "metadata")
 
-	m, err := NextMetadata(appDB, "test_key_id", "test_subject")
+	keyId := "test_key_id"
+	subject := "test_subject"
+
+	m, err := NextMetadata(appDB, keyId, subject)
 	if err != nil {
 		t.Error(err.Error())
 		return
@@ -32,8 +35,8 @@ func TestWriteMetadata(t *testing.T) {
 
 	b := &Metadata{
 		Timestamp: m.Timestamp,
-		Subject:   "test_subject",
-		KeyId:     "test_key_id",
+		KeyId:     keyId,
+		Subject:   subject,
 		Meta: map[string]interface{}{
 			"key": "value",
 		},
@@ -41,5 +44,15 @@ func TestWriteMetadata(t *testing.T) {
 
 	if !metadataEqual(m, b) {
 		t.Errorf("metdata mismach: %s != %s", m, b)
+	}
+
+	c, err := LatestMetadata(appDB, keyId, subject)
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+
+	if !metadataEqual(m, c) {
+		t.Errorf("metadta mismatch: %s != %s ", m, c)
 	}
 }

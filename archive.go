@@ -65,7 +65,7 @@ func (c *Client) ArchiveUrl(db sqlQueryExecable, reqId, url string) {
 		c.SendResponse(&ClientResponse{
 			Type:      "URL_ARCHIVE_ERROR",
 			RequestId: reqId,
-			Error:     fmt.Sprintf("internal server error"),
+			Error:     err.Error(),
 		})
 		return
 	}
