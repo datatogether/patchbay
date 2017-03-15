@@ -1,3 +1,4 @@
+// TODO - turn "Metadata" into github.com/qri-io/metablocks.Metablock
 package main
 
 import (
@@ -9,6 +10,18 @@ import (
 	"github.com/multiformats/go-multihash"
 	"time"
 )
+
+// CalcHash calculates the multihash key for a given slice of bytes
+// TODO - find a proper home for this
+func CalcHash(data []byte) (string, error) {
+	h := sha256.New()
+	h.Write(data)
+	mhBuf, err := multihash.EncodeName(h.Sum(nil), "sha2-256")
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(mhBuf), nil
+}
 
 // A snapshot is a record of a GET request to a url
 // There can be many metadata of a given url
@@ -119,25 +132,25 @@ func (m *Metadata) Write(db sqlQueryExecable) error {
 	return err
 }
 
-// MetadatasForUrl returns all metadata for a given url string
-// func MetadatasForUrl(db sqlQueryable, url string) ([]*Metadata, error) {
-// 	res, err := db.Query("select url, created, status, duration, hash, headers from metadata where url = $1", url)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	defer res.Close()
+// MetadataForSubject returns all metadata for a given subject hash
+func MetadataForSubject(db sqlQueryable, subject string) ([]*Metadata, error) {
+	res, err := db.Query(fmt.Sprintf("select %s from metadata where subject = $1 and deleted = false and meta is not null", metadataCols()), subject)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Close()
 
-// 	metadata := make([]*Metadata, 0)
-// 	for res.Next() {
-// 		c := &Metadata{}
-// 		if err := c.UnmarshalSQL(res); err != nil {
-// 			return nil, err
-// 		}
-// 		metadata = append(metadata, c)
-// 	}
+	metadata := make([]*Metadata, 0)
+	for res.Next() {
+		m := &Metadata{}
+		if err := m.UnmarshalSQL(res); err != nil {
+			return nil, err
+		}
+		metadata = append(metadata, m)
+	}
 
-// 	return metadata, nil
-// }
+	return metadata, nil
+}
 
 func metadataCols() string {
 	return "hash, time_stamp, key_id, subject, prev, meta"
@@ -175,4 +188,38 @@ func (m *Metadata) UnmarshalSQL(row sqlScannable) error {
 	}
 
 	return nil
+}
+
+// TODO - this is ripped from metablocks
+func (m *Metadata) HashMaps() (keyMap map[string]string, valueMap map[string]interface{}, err error) {
+	var (
+		value []byte
+		hash  string
+	)
+
+	keyMap = map[string]string{}
+	valueMap = map[string]interface{}{}
+
+	if m.Meta == nil {
+		logger.Println(m)
+		err = fmt.Errorf("metablock has no metadata calculate hashmaps from")
+		return
+	}
+
+	for k, v := range m.Meta {
+		value, err = json.Marshal(v)
+		if err != nil {
+			return
+		}
+
+		hash, err = CalcHash(value)
+		if err != nil {
+			return
+		}
+
+		keyMap[k] = hash
+		valueMap[hash] = v
+	}
+
+	return
 }

@@ -46,11 +46,11 @@ var ClientReqActions = []ClientAction{
 	FetchInboundLinksAct{},
 	FetchOutboundLinksAct{},
 	FetchContentUrlsAction{},
-	FetchContentConsensusAction{},
 	FetchMetadataAction{},
 	SaveMetadataAction{},
 	FetchPrimersAction{},
 	FetchPrimerAction{},
+	FetchConsensusAction{},
 }
 
 type ReqAction struct {
@@ -290,41 +290,6 @@ func (a *FetchContentUrlsAction) Exec() (res *ClientResponse) {
 	}
 }
 
-// FetchContentConsensusAction triggers archiving a url
-type FetchContentConsensusAction struct {
-	ReqAction
-	Hash string
-}
-
-func (FetchContentConsensusAction) Type() string        { return "CONTENT_CONSENSUS_REQUEST" }
-func (FetchContentConsensusAction) SuccessType() string { return "CONTENT_CONSENSUS_SUCCESS" }
-func (FetchContentConsensusAction) FailureType() string { return "CONTENT_CONSENSUS_FAILURE" }
-
-func (FetchContentConsensusAction) Parse(reqId string, data json.RawMessage) ClientRequestAction {
-	a := &FetchContentConsensusAction{}
-	a.RequestId = reqId
-	a.err = json.Unmarshal(data, a)
-	return a
-}
-
-func (a *FetchContentConsensusAction) Exec() (res *ClientResponse) {
-	return &ClientResponse{
-		Type:      a.SuccessType(),
-		RequestId: a.RequestId,
-		Schema:    "CONSENSUS",
-		Data: map[string]interface{}{
-			"subject": a.Hash,
-			"title": map[string]interface{}{
-				"this is just a test": 3,
-			},
-			"format": map[string]interface{}{
-				"html":      2,
-				"text/html": 1,
-			},
-		},
-	}
-}
-
 // FetchMetadataAction triggers archiving a url
 type FetchMetadataAction struct {
 	ReqAction
@@ -492,5 +457,64 @@ func (a *FetchPrimerAction) Exec() (res *ClientResponse) {
 		RequestId: a.RequestId,
 		Schema:    "PRIMER",
 		Data:      d,
+	}
+}
+
+// FetchConsensusAction fetches a url from the DB
+type FetchConsensusAction struct {
+	ReqAction
+	Subject string
+}
+
+func (FetchConsensusAction) Type() string        { return "CONSENSUS_REQUEST" }
+func (FetchConsensusAction) SuccessType() string { return "CONSENSUS_SUCCESS" }
+func (FetchConsensusAction) FailureType() string { return "CONSENSUS_FAILURE" }
+
+func (FetchConsensusAction) Parse(reqId string, data json.RawMessage) ClientRequestAction {
+	a := &FetchConsensusAction{}
+	a.RequestId = reqId
+	a.err = json.Unmarshal(data, a)
+	return a
+}
+
+func (a *FetchConsensusAction) Exec() (res *ClientResponse) {
+	blocks, err := MetadataForSubject(appDB, a.Subject)
+	if err != nil {
+		logger.Println(err.Error())
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
+
+	c, values, err := SumConsensus(a.Subject, blocks)
+	if err != nil {
+		logger.Println(err.Error())
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
+
+	md, err := c.Metadata(values)
+	if err != nil {
+		logger.Println(err.Error())
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
+
+	return &ClientResponse{
+		Type:      a.SuccessType(),
+		Schema:    "CONSENSUS",
+		RequestId: a.RequestId,
+		Data: map[string]interface{}{
+			"subject": a.Subject,
+			"data":    md,
+		},
 	}
 }
