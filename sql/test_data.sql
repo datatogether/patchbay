@@ -1,9 +1,15 @@
 
--- name: insert-domains
-insert into domains values
-	('www.epa.gov','2017-01-01 00:00:01','2017-01-01 00:00:01',43200000,true,null);
--- name: delete-domains
-delete from domains;
+-- name: insert-primers
+insert into primers values
+	('5b1031f4-38a8-40b3-be91-c324bf686a87','2017-01-01 00:00:01','2017-01-01 00:00:01', 'Environmental Protection Agency', 'The mission of the Environmental Protection Agency is to protect human health and the environment through the development and enforcement of regulations. The EPA is responsible for administering a number of laws that span various sectors, such as agriculture, transportation, utilities, construction, and oil and gas. In the budget for FY 2017, the agency lays out goals to better support communities and address climate change following the President’s Climate Action Plan. Additionally, the agency aims to improve community water infrastructure, chemical plant safety, and collaborative partnerships among federal, state, and tribal levels.',false);
+-- name: delete-primers
+delete from primers;
+
+--name: insert-crawl_urls
+insert into crawl_urls values
+  ('www.epa.gov', '2017-01-01 00:00:01', '2017-01-01 00:00:01', '5b1031f4-38a8-40b3-be91-c324bf686a87',true,43200000,null,null);
+--name: delete-crawl_urls
+delete from crawl_urls;
 
 -- name: insert-urls
 insert into urls values

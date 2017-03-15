@@ -404,7 +404,7 @@ func (FetchPrimersAction) Parse(reqId string, data json.RawMessage) ClientReques
 func (a *FetchPrimersAction) Exec() (res *ClientResponse) {
 	// for now we're proxying domains as "primers", more bridging work
 	// is needed
-	domains, err := ListDomains(appDB, 50, 0)
+	domains, err := ListPrimers(appDB, 50, 0)
 	if err != nil {
 		logger.Println(err.Error())
 		return &ClientResponse{
@@ -425,7 +425,7 @@ func (a *FetchPrimersAction) Exec() (res *ClientResponse) {
 // FetchPrimerAction grabs a page of primers
 type FetchPrimerAction struct {
 	ReqAction
-	Host string
+	Id string
 }
 
 func (FetchPrimerAction) Type() string        { return "PRIMER_FETCH_REQUEST" }
@@ -440,10 +440,8 @@ func (FetchPrimerAction) Parse(reqId string, data json.RawMessage) ClientRequest
 }
 
 func (a *FetchPrimerAction) Exec() (res *ClientResponse) {
-	// for now we're proxying domains as "primers", more bridging work
-	// is needed
-	d := &Domain{Host: a.Host}
-	if err := d.Read(appDB); err != nil {
+	p := &Primer{Id: a.Id}
+	if err := p.Read(appDB); err != nil {
 		logger.Println(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
@@ -456,7 +454,7 @@ func (a *FetchPrimerAction) Exec() (res *ClientResponse) {
 		Type:      a.SuccessType(),
 		RequestId: a.RequestId,
 		Schema:    "PRIMER",
-		Data:      d,
+		Data:      p,
 	}
 }
 
