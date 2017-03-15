@@ -49,6 +49,8 @@ var ClientReqActions = []ClientAction{
 	FetchContentConsensusAction{},
 	FetchMetadataAction{},
 	SaveMetadataAction{},
+	FetchPrimersAction{},
+	FetchPrimerAction{},
 }
 
 type ReqAction struct {
@@ -413,5 +415,82 @@ func (a *SaveMetadataAction) Exec() (res *ClientResponse) {
 		RequestId: a.RequestId,
 		Schema:    "METADATA",
 		Data:      a,
+	}
+}
+
+// FetchPrimersAction grabs a page of primers
+type FetchPrimersAction struct {
+	ReqAction
+	Page     int
+	PageSize int
+}
+
+func (FetchPrimersAction) Type() string        { return "PRIMERS_FETCH_REQUEST" }
+func (FetchPrimersAction) SuccessType() string { return "PRIMERS_FETCH_SUCCESS" }
+func (FetchPrimersAction) FailureType() string { return "PRIMERS_FETCH_FAILURE" }
+
+func (FetchPrimersAction) Parse(reqId string, data json.RawMessage) ClientRequestAction {
+	a := &FetchPrimersAction{}
+	a.RequestId = reqId
+	a.err = json.Unmarshal(data, a)
+	return a
+}
+
+func (a *FetchPrimersAction) Exec() (res *ClientResponse) {
+	// for now we're proxying domains as "primers", more bridging work
+	// is needed
+	domains, err := ListDomains(appDB, 50, 0)
+	if err != nil {
+		logger.Println(err.Error())
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
+
+	return &ClientResponse{
+		Type:      a.SuccessType(),
+		RequestId: a.RequestId,
+		Schema:    "PRIMER_ARRAY",
+		Data:      domains,
+	}
+}
+
+// FetchPrimerAction grabs a page of primers
+type FetchPrimerAction struct {
+	ReqAction
+	Host string
+}
+
+func (FetchPrimerAction) Type() string        { return "PRIMER_FETCH_REQUEST" }
+func (FetchPrimerAction) SuccessType() string { return "PRIMER_FETCH_SUCCESS" }
+func (FetchPrimerAction) FailureType() string { return "PRIMER_FETCH_FAILURE" }
+
+func (FetchPrimerAction) Parse(reqId string, data json.RawMessage) ClientRequestAction {
+	a := &FetchPrimerAction{}
+	a.RequestId = reqId
+	a.err = json.Unmarshal(data, a)
+	return a
+}
+
+func (a *FetchPrimerAction) Exec() (res *ClientResponse) {
+	// for now we're proxying domains as "primers", more bridging work
+	// is needed
+	d := &Domain{Host: a.Host}
+	if err := d.Read(appDB); err != nil {
+		logger.Println(err.Error())
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
+
+	return &ClientResponse{
+		Type:      a.SuccessType(),
+		RequestId: a.RequestId,
+		Schema:    "PRIMER",
+		Data:      d,
 	}
 }
