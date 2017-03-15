@@ -198,24 +198,24 @@ func (u *Url) OutboundLinks(db sqlQueryable) ([]string, error) {
 }
 
 // ReadContexts reads all context information contributed about this url
-func (u *Url) ReadContexts(db sqlQueryable) ([]*UrlContext, error) {
-	res, err := db.Query(fmt.Sprintf("select %s from context where context.url = $1", urlContextCols()), u.Url)
-	if err != nil {
-		return nil, err
-	}
-	defer res.Close()
+// func (u *Url) ReadContexts(db sqlQueryable) ([]*UrlContext, error) {
+// 	res, err := db.Query(fmt.Sprintf("select %s from context where context.url = $1", urlContextCols()), u.Url)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	defer res.Close()
 
-	contexts := make([]*UrlContext, 0)
-	for res.Next() {
-		c := &UrlContext{}
-		if err := c.UnmarshalSQL(res); err != nil {
-			return nil, err
-		}
-		contexts = append(contexts, c)
-	}
+// 	contexts := make([]*UrlContext, 0)
+// 	for res.Next() {
+// 		c := &UrlContext{}
+// 		if err := c.UnmarshalSQL(res); err != nil {
+// 			return nil, err
+// 		}
+// 		contexts = append(contexts, c)
+// 	}
 
-	return contexts, nil
-}
+// 	return contexts, nil
+// }
 
 // isFetchable filters to only usable urls & schemes
 // this filters out stuff like mailto:// and ftp:// schemes
@@ -392,10 +392,10 @@ func rawHeadersSlice(res *http.Response) (headers []string) {
 
 // Metadata collects up all metadata as
 func (u *Url) Metadata(db sqlQueryable) (*Meta, error) {
-	contexts, err := u.ReadContexts(db)
-	if err != nil {
-		return nil, err
-	}
+	// contexts, err := u.ReadContexts(db)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	ibl, err := u.InboundLinks(db)
 	if err != nil {
@@ -424,7 +424,6 @@ func (u *Url) Metadata(db sqlQueryable) (*Meta, error) {
 		DownloadTook:  u.DownloadTook,
 		Sha256:        sha,
 		Multihash:     u.Hash,
-		Contexts:      contexts,
 		InboundLinks:  ibl,
 		OutboundLinks: obl,
 	}, nil

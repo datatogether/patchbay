@@ -17,7 +17,6 @@ type Meta struct {
 	DownloadTook  int               `json:"downloadTook,omitempty"`
 	Sha256        string            `json:"sha256"`
 	Multihash     string            `json:"multihash"`
-	Contexts      []*UrlContext     `json:"context"`
 	InboundLinks  []string          `json:"inboundLinks,omitempty"`
 	OutboundLinks []string          `json:"outboundLinks,omitempty"`
 }

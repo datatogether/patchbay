@@ -79,45 +79,45 @@ func UrlMetadataHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Par
 }
 
 func SaveUrlContextHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	uc := &UrlContext{}
-	if err := json.NewDecoder(r.Body).Decode(uc); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, fmt.Sprintf("json formatting error: %s", err.Error()))
-		return
-	}
-	r.Body.Close()
+	// uc := &UrlContext{}
+	// if err := json.NewDecoder(r.Body).Decode(uc); err != nil {
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	io.WriteString(w, fmt.Sprintf("json formatting error: %s", err.Error()))
+	// 	return
+	// }
+	// r.Body.Close()
 
-	if err := uc.Save(appDB); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, fmt.Sprintf("error saving context: %s", err.Error()))
-		return
-	}
+	// if err := uc.Save(appDB); err != nil {
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	io.WriteString(w, fmt.Sprintf("error saving context: %s", err.Error()))
+	// 	return
+	// }
 
-	w.WriteHeader(200)
-	w.Header().Add("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(uc); err != nil {
-		logger.Println(err.Error())
-	}
+	// w.WriteHeader(200)
+	// w.Header().Add("Content-Type", "application/json")
+	// if err := json.NewEncoder(w).Encode(uc); err != nil {
+	// 	logger.Println(err.Error())
+	// }
 }
 
-func DeleteUrlContextHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	uc := &UrlContext{}
-	if err := json.NewDecoder(r.Body).Decode(uc); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, fmt.Sprintf("json formatting error: %s", err.Error()))
-		return
-	}
-	r.Body.Close()
+// func DeleteUrlContextHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+// 	uc := &UrlContext{}
+// 	if err := json.NewDecoder(r.Body).Decode(uc); err != nil {
+// 		w.WriteHeader(http.StatusBadRequest)
+// 		io.WriteString(w, fmt.Sprintf("json formatting error: %s", err.Error()))
+// 		return
+// 	}
+// 	r.Body.Close()
 
-	if err := uc.Delete(appDB); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, fmt.Sprintf("error saving context: %s", err.Error()))
-		return
-	}
+// 	if err := uc.Delete(appDB); err != nil {
+// 		w.WriteHeader(http.StatusBadRequest)
+// 		io.WriteString(w, fmt.Sprintf("error saving context: %s", err.Error()))
+// 		return
+// 	}
 
-	w.WriteHeader(200)
-	io.WriteString(w, "url deleted")
-}
+// 	w.WriteHeader(200)
+// 	io.WriteString(w, "url deleted")
+// }
 
 func UrlSetMetadataHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	reqUrl, err := reqUrl(r)

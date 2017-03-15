@@ -6,6 +6,10 @@ import (
 )
 
 func TestArchive(t *testing.T) {
+	if testing.Short() {
+		t.Skip("short mode, skipping.")
+		return
+	}
 	defer resetTestData(appDB, "urls", "links", "snapshots")
 	var (
 		links []*Link
