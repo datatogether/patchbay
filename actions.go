@@ -450,6 +450,15 @@ func (a *FetchPrimerAction) Exec() (res *ClientResponse) {
 		}
 	}
 
+	if err := p.ReadSubprimers(appDB); err != nil {
+		logger.Println(err.Error())
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
+
 	return &ClientResponse{
 		Type:      a.SuccessType(),
 		RequestId: a.RequestId,

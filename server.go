@@ -49,6 +49,7 @@ func main() {
 	r.GET("/login", middleware(WebappHandler))
 	r.GET("/login/forgot", middleware(WebappHandler))
 	r.GET("/primers", middleware(WebappHandler))
+	r.GET("/primers/:id", middleware(WebappHandler))
 
 	r.GET("/ws", middleware(HandleWebsocketUpgrade))
 

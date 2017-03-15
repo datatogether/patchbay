@@ -9,31 +9,33 @@ import (
 
 // Primer is tracking information about a base URL
 type Primer struct {
-	Id          string    `json:"id"`
-	Created     time.Time `json:"created"`
-	Updated     time.Time `json:"updated"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
+	Id          string       `json:"id"`
+	Created     time.Time    `json:"created"`
+	Updated     time.Time    `json:"updated"`
+	Title       string       `json:"title"`
+	Description string       `json:"description"`
+	Subprimers  []*Subprimer `json:"crawlUrls"`
 }
 
-// CrawlUrls returns the list of listed urls for crawling associated with this primer
-func (p *Primer) CrawlUrls(db sqlQueryable) ([]*CrawlUrl, error) {
-	rows, err := db.Query(fmt.Sprintf("select %s from crawl_urls where primer_id = $1", crawlUrlCols()), p.Id)
+// Subprimers returns the list of listed urls for crawling associated with this primer
+func (p *Primer) ReadSubprimers(db sqlQueryable) error {
+	rows, err := db.Query(fmt.Sprintf("select %s from subprimers where primer_id = $1", subprimerCols()), p.Id)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	defer rows.Close()
-	urls := make([]*CrawlUrl, 0)
+	urls := make([]*Subprimer, 0)
 	for rows.Next() {
-		c := &CrawlUrl{}
+		c := &Subprimer{}
 		if err := c.UnmarshalSQL(rows); err != nil {
-			return nil, err
+			return err
 		}
 		urls = append(urls, c)
 	}
 
-	return urls, nil
+	p.Subprimers = urls
+	return nil
 }
 
 func (p *Primer) Read(db sqlQueryable) error {
