@@ -34,6 +34,9 @@ type ClientResponse struct {
 	Error     string      `json:"error,omitempty"`
 	Message   string      `json:"message,omitempty"`
 	Schema    string      `json:"schema,omitempty"`
+	Page      int         `json:"page,omitempty"`
+	PageSize  int         `json:"pageSize,omitempty"`
+	Id        string      `json:"id,omitempty"`
 	Data      interface{} `json:"data,omitempty"`
 }
 
@@ -51,6 +54,7 @@ var ClientReqActions = []ClientAction{
 	FetchPrimersAction{},
 	FetchPrimerAction{},
 	FetchSubprimerAction{},
+	FetchSubprimerUrlsAction{},
 	FetchConsensusAction{},
 }
 
@@ -510,6 +514,65 @@ func (a *FetchSubprimerAction) Exec() (res *ClientResponse) {
 		RequestId: a.RequestId,
 		Schema:    "SUBPRIMER",
 		Data:      s,
+	}
+}
+
+// FetchSubprimerAction grabs a page of primers
+type FetchSubprimerUrlsAction struct {
+	ReqAction
+	Id       string
+	Page     int
+	PageSize int
+}
+
+func (FetchSubprimerUrlsAction) Type() string        { return "SUBPRIMER_URLS_REQUEST" }
+func (FetchSubprimerUrlsAction) SuccessType() string { return "SUBPRIMER_URLS_SUCCESS" }
+func (FetchSubprimerUrlsAction) FailureType() string { return "SUBPRIMER_URLS_FAILURE" }
+
+func (FetchSubprimerUrlsAction) Parse(reqId string, data json.RawMessage) ClientRequestAction {
+	a := &FetchSubprimerUrlsAction{}
+	a.RequestId = reqId
+	a.err = json.Unmarshal(data, a)
+	return a
+}
+
+func (a *FetchSubprimerUrlsAction) Exec() (res *ClientResponse) {
+	s := &Subprimer{Id: a.Id}
+	if err := s.Read(appDB); err != nil {
+		logger.Println(err.Error())
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
+
+	urls, err := s.UndescribedContent(appDB, 200, 0)
+	if err != nil {
+		logger.Println(err.Error())
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
+
+	// resStruct := struct {
+	// 	Subprimer
+	// 	UndescribedUrls []*Url `json:"undescribedUrls"`
+	// }{
+	// 	Subprimer: s,
+	// 	Urls:      urls,
+	// }
+
+	return &ClientResponse{
+		Type:      a.SuccessType(),
+		RequestId: a.RequestId,
+		Schema:    "URL_ARRAY",
+		Id:        a.Id,
+		Page:      a.Page,
+		PageSize:  a.PageSize,
+		Data:      urls,
 	}
 }
 

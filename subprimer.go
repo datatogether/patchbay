@@ -107,7 +107,7 @@ func (s *Subprimer) UndescribedContent(db sqlQueryable, limit, offset int) ([]*U
 		if err := u.UnmarshalSQL(rows); err != nil {
 			return nil, err
 		}
-		urls = append(urls, u)
+		urls[i] = u
 		i++
 	}
 
