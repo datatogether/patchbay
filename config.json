@@ -15,8 +15,8 @@
 	"template_data" : {
 		"title" : "Context",
     "webappScripts" : [
-      "/js/vendor.min.js",
-      "/js/app.min.js"
+      "https://static.qri.io/js/archivers/vendor.min.js",
+      "https://static.qri.io/js/archivers/app.min.js"
     ]
 	}
 }
