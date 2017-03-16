@@ -50,6 +50,7 @@ var ClientReqActions = []ClientAction{
 	SaveMetadataAction{},
 	FetchPrimersAction{},
 	FetchPrimerAction{},
+	FetchSubprimerAction{},
 	FetchConsensusAction{},
 }
 
@@ -464,6 +465,51 @@ func (a *FetchPrimerAction) Exec() (res *ClientResponse) {
 		RequestId: a.RequestId,
 		Schema:    "PRIMER",
 		Data:      p,
+	}
+}
+
+// FetchSubprimerAction grabs a page of primers
+type FetchSubprimerAction struct {
+	ReqAction
+	Id string
+}
+
+func (FetchSubprimerAction) Type() string        { return "SUBPRIMER_FETCH_REQUEST" }
+func (FetchSubprimerAction) SuccessType() string { return "SUBPRIMER_FETCH_SUCCESS" }
+func (FetchSubprimerAction) FailureType() string { return "SUBPRIMER_FETCH_FAILURE" }
+
+func (FetchSubprimerAction) Parse(reqId string, data json.RawMessage) ClientRequestAction {
+	a := &FetchSubprimerAction{}
+	a.RequestId = reqId
+	a.err = json.Unmarshal(data, a)
+	return a
+}
+
+func (a *FetchSubprimerAction) Exec() (res *ClientResponse) {
+	s := &Subprimer{Id: a.Id}
+	if err := s.Read(appDB); err != nil {
+		logger.Println(err.Error())
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
+
+	if err := s.CalcStats(appDB); err != nil {
+		logger.Println(err.Error())
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
+
+	return &ClientResponse{
+		Type:      a.SuccessType(),
+		RequestId: a.RequestId,
+		Schema:    "SUBPRIMER",
+		Data:      s,
 	}
 }
 

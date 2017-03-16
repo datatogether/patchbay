@@ -19,6 +19,53 @@ type Subprimer struct {
 	StaleDuration time.Duration          `json:"staleDuration"`
 	LastAlertSent *time.Time             `json:"lastAlertSent"`
 	Meta          map[string]interface{} `json:"meta"`
+	Stats         *SubprimerStats        `json:"stats"`
+}
+
+type SubprimerStats struct {
+	UrlCount             int `json:"urlCount"`
+	ContentUrlCount      int `json:"contentUrlCount"`
+	ContentMetadataCount int `json:"contentMetadataCount"`
+}
+
+func (s *Subprimer) CalcStats(db sqlQueryable) error {
+	urlCount, err := s.urlCount(db)
+	if err != nil {
+		return err
+	}
+
+	contentUrlCount, err := s.contentUrlCount(db)
+	if err != nil {
+		return err
+	}
+
+	metadataCount, err := s.contentWithMetadataCount(db)
+	if err != nil {
+		return err
+	}
+
+	s.Stats = &SubprimerStats{
+		UrlCount:             urlCount,
+		ContentUrlCount:      contentUrlCount,
+		ContentMetadataCount: metadataCount,
+	}
+
+	return nil
+}
+
+func (s *Subprimer) urlCount(db sqlQueryable) (count int, err error) {
+	err = db.QueryRow("select count(1) from urls where url ilike $1", "%"+s.Url+"%").Scan(&count)
+	return
+}
+
+func (s *Subprimer) contentUrlCount(db sqlQueryable) (count int, err error) {
+	err = db.QueryRow("select count(1) from urls where url ilike $1 and content_sniff != 'text/html; charset=utf-8' and hash != ''", "%"+s.Url+"%").Scan(&count)
+	return
+}
+
+func (s *Subprimer) contentWithMetadataCount(db sqlQueryable) (count int, err error) {
+	err = db.QueryRow("select count(1) from urls, metadata where urls.url ilike $1 and urls.content_sniff != 'text/html; charset=utf-8' and urls.hash = metadata.hash", "%"+s.Url+"%").Scan(&count)
+	return
 }
 
 // AsUrl retrieves the url that corresponds for the crawlUrl. If one doesn't exist & the url is saved,
