@@ -52,6 +52,7 @@ func main() {
 	r.GET("/primers/:id", middleware(WebappHandler))
 	r.GET("/subprimers", middleware(WebappHandler))
 	r.GET("/subprimers/:id", middleware(WebappHandler))
+	r.GET("/.well-known/acme-challenge/:content", CertbotHandler)
 
 	r.GET("/ws", middleware(HandleWebsocketUpgrade))
 

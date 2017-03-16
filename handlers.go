@@ -197,3 +197,7 @@ func renderTemplate(w http.ResponseWriter, tmpl string) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
+
+func CertbotHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	io.WriteString(w, cfg.CertbotResponse)
+}

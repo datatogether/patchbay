@@ -78,6 +78,10 @@ type config struct {
 	// index.html has an example of using template_data to set the "title"
 	// attribute
 	TemplateData map[string]interface{} `json:"template_data"`
+
+	// CertbotResponse is only for doing manual SSL certificate generation
+	// via LetsEncrypt.
+	CertbotResponse string `json:"CERTBOT_RESPONSE"`
 }
 
 // StaleDuration turns cfg.StaleDurationHours into a time.Duration
@@ -108,6 +112,7 @@ func initConfig(mode string) (cfg *config, err error) {
 	cfg.AwsS3BucketPath = readEnvString("AWS_S3_BUCKET_PATH", cfg.AwsS3BucketPath)
 	cfg.AwsAccessKeyId = readEnvString("AWS_ACCESS_KEY_ID", cfg.AwsAccessKeyId)
 	cfg.AwsSecretAccessKey = readEnvString("AWS_SECRET_ACCESS_KEY", cfg.AwsSecretAccessKey)
+	cfg.CertbotResponse = readEnvString("CERTBOT_RESPONSE", cfg.CertbotResponse)
 	// cfg.StaleDuration = readEnvInt("STALE_DURATION", cfg.StaleDuration)
 
 	// make sure port is set
