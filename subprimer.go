@@ -44,6 +44,32 @@ func (c *Subprimer) AsUrl(db sqlQueryExecable) (*Url, error) {
 	return u, nil
 }
 
+// TODO - this currently doesn't check the status of metadata, gonna need to do that
+// UndescribedContent returns a list of content-urls from this subprimer that need work.
+func (s *Subprimer) UndescribedContent(db sqlQueryable, limit, offset int) ([]*Url, error) {
+	rows, err := db.Query(fmt.Sprintf("select %s from urls where url ilike $1 and content_sniff != 'text/html; charset=utf-8' and hash != '' limit $2 offset $3", urlCols()), "%"+s.Url+"%", limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	urls := make([]*Url, limit)
+	i := 0
+	for rows.Next() {
+		u := &Url{}
+		if err := u.UnmarshalSQL(rows); err != nil {
+			return nil, err
+		}
+		urls = append(urls, u)
+		i++
+	}
+
+	return urls[:i], nil
+}
+
+// func (s *Subprimer) Stats() {
+// }
+
 func (c *Subprimer) Read(db sqlQueryable) error {
 	if c.Id != "" {
 		row := db.QueryRow(fmt.Sprintf("select %s from subprimers where id = $1", subprimerCols()), c.Id)
