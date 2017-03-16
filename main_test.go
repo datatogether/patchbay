@@ -38,7 +38,7 @@ func setupTestDatabase() func() {
 		logger.Panicln(err.Error())
 	}
 
-	if err := resetTestData(appDB, "primers", "subprimers", "urls", "links", "metadata", "snapshots"); err != nil {
+	if err := resetTestData(appDB, "primers", "subprimers", "urls", "links", "metadata", "snapshots", "archive_requests"); err != nil {
 		logger.Panicln(err.Error())
 	}
 
@@ -65,6 +65,7 @@ func initializeAppSchema(db *sql.DB) (func(), error) {
 		"create-links",
 		"create-metadata",
 		"create-snapshots",
+		"create-archive_requests",
 	} {
 		if _, err := schema.Exec(db, cmd); err != nil {
 			logger.Println(cmd, "error:", err)

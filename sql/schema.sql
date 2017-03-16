@@ -1,5 +1,5 @@
 -- name: drop-all
-DROP TABLE IF EXISTS urls, links, primers, subprimers, alerts, context, metadata, supress_alerts, snapshots;
+DROP TABLE IF EXISTS urls, links, primers, subprimers, alerts, context, metadata, supress_alerts, snapshots, archive_requests;
 
 -- name: create-primers
 CREATE TABLE primers (
@@ -21,6 +21,7 @@ CREATE TABLE subprimers (
 	crawl 					boolean default true,
 	stale_duration 	integer NOT NULL DEFAULT 43200000, -- defaults to 12 hours, column needs to be multiplied by 1000000 to become a poper duration
 	last_alert_sent timestamp,
+	stats 					json,
 	meta 						json
 );
 
@@ -72,6 +73,14 @@ CREATE TABLE snapshots (
 	duration 				integer NOT NULL DEFAULT 0,
 	meta 						json,
 	hash 						text NOT NULL DEFAULT ''
+);
+
+-- name: create-archive_requests
+CREATE TABLE archive_requests (
+	id 							serial primary key,
+	created 				timestamp NOT NULL default (now() at time zone 'utc'),
+	url 						text NOT NULL,
+	user_id 				text NOT NULL default ''
 );
 
 -- CREATE TABLE alerts (

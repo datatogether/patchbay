@@ -5,7 +5,43 @@ import (
 	"time"
 )
 
+// ValidArchivingUrl checks to see if this url pattern-matches the list of subprimers
+// TODO - there are many ways to spoof this, replace with actual URL matching.
+func ValidArchivingUrl(db sqlQueryable, url string) error {
+	var exists bool
+	err := db.QueryRow("select exists(select 1 from subprimers where $1 ilike concat('%', url ,'%'))", url).Scan(&exists)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return fmt.Errorf("Oops! Only urls contained in subprimers can be archived. cannot archive %s", url)
+	}
+	return nil
+}
+
 func (c *Client) ArchiveUrl(db sqlQueryExecable, reqId, url string) {
+	if err := ValidArchivingUrl(db, url); err != nil {
+		logger.Println(err.Error())
+		c.SendResponse(&ClientResponse{
+			Type:      "URL_ARCHIVE_ERROR",
+			RequestId: reqId,
+			Error:     err.Error(),
+		})
+		return
+	}
+
+	// TODO - plumb userId into this
+	_, err := db.Exec("insert into archive_requests (created,url,user_id) values ($1, $2, $3)", time.Now().Round(time.Second).In(time.UTC), url, "")
+	if err != nil {
+		logger.Println(err.Error())
+		c.SendResponse(&ClientResponse{
+			Type:      "URL_ARCHIVE_ERROR",
+			RequestId: reqId,
+			Error:     err.Error(),
+		})
+		return
+	}
+
 	logger.Println("archiving %s", url)
 	u := &Url{Url: url}
 	if _, err := u.ParsedUrl(); err != nil {

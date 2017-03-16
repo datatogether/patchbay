@@ -28,7 +28,7 @@ type SubprimerStats struct {
 	ContentMetadataCount int `json:"contentMetadataCount"`
 }
 
-func (s *Subprimer) CalcStats(db sqlQueryable) error {
+func (s *Subprimer) CalcStats(db sqlQueryExecable) error {
 	urlCount, err := s.urlCount(db)
 	if err != nil {
 		return err
@@ -50,7 +50,8 @@ func (s *Subprimer) CalcStats(db sqlQueryable) error {
 		ContentMetadataCount: metadataCount,
 	}
 
-	return nil
+	// TODO - stop saving here & instead hook this up to some sort of cron task
+	return s.Save(db)
 }
 
 func (s *Subprimer) urlCount(db sqlQueryable) (count int, err error) {
@@ -64,7 +65,7 @@ func (s *Subprimer) contentUrlCount(db sqlQueryable) (count int, err error) {
 }
 
 func (s *Subprimer) contentWithMetadataCount(db sqlQueryable) (count int, err error) {
-	err = db.QueryRow("select count(1) from urls, metadata where urls.url ilike $1 and urls.content_sniff != 'text/html; charset=utf-8' and urls.hash = metadata.hash", "%"+s.Url+"%").Scan(&count)
+	err = db.QueryRow("select count(1) from urls where urls.url ilike $1 and urls.content_sniff != 'text/html; charset=utf-8' and exists (select null from metadata where urls.hash = metadata.subject)", "%"+s.Url+"%").Scan(&count)
 	return
 }
 
@@ -94,7 +95,8 @@ func (c *Subprimer) AsUrl(db sqlQueryExecable) (*Url, error) {
 // TODO - this currently doesn't check the status of metadata, gonna need to do that
 // UndescribedContent returns a list of content-urls from this subprimer that need work.
 func (s *Subprimer) UndescribedContent(db sqlQueryable, limit, offset int) ([]*Url, error) {
-	rows, err := db.Query(fmt.Sprintf("select %s from urls where url ilike $1 and content_sniff != 'text/html; charset=utf-8' and hash != '' limit $2 offset $3", urlCols()), "%"+s.Url+"%", limit, offset)
+	cols := "urls.url, urls.created, urls.updated, urls.last_head, urls.last_get, urls.status, urls.content_type, urls.content_sniff, urls.content_length, urls.title, urls.id, urls.headers_took, urls.download_took, urls.headers, urls.meta, urls.hash"
+	rows, err := db.Query(fmt.Sprintf("select %s from urls, metadata where urls.url ilike $1 and content_sniff != 'text/html; charset=utf-8' and urls.last_get is not null and not exists (select null from metadata where urls.hash = metadata.subject) limit $2 offset $3", cols), "%"+s.Url+"%", limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -135,14 +137,14 @@ func (c *Subprimer) Save(db sqlQueryExecable) error {
 			c.Id = uuid.New()
 			c.Created = time.Now().Round(time.Second)
 			c.Updated = c.Created
-			_, err := db.Exec(fmt.Sprintf("insert into subprimers (%s) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)", subprimerCols()), c.SQLArgs()...)
+			_, err := db.Exec(fmt.Sprintf("insert into subprimers (%s) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)", subprimerCols()), c.SQLArgs()...)
 			return err
 		} else {
 			return err
 		}
 	} else {
 		c.Updated = time.Now().Round(time.Second)
-		_, err := db.Exec("update subprimers set url = $2, created = $3, updated = $4, primer_id = $5, crawl = $6, stale_duration = $7, last_alert_sent = $8, meta = $9 where id = $1", c.SQLArgs()...)
+		_, err := db.Exec("update subprimers set url = $2, created = $3, updated = $4, primer_id = $5, crawl = $6, stale_duration = $7, last_alert_sent = $8, meta = $9, stats = $10 where id = $1", c.SQLArgs()...)
 		return err
 	}
 
@@ -156,15 +158,15 @@ func (c *Subprimer) Delete(db sqlQueryExecable) error {
 
 func (c *Subprimer) UnmarshalSQL(row sqlScannable) error {
 	var (
-		id, url, pId     string
-		created, updated time.Time
-		lastAlert        *time.Time
-		stale            int64
-		crawl            bool
-		metaBytes        []byte
+		id, url, pId          string
+		created, updated      time.Time
+		lastAlert             *time.Time
+		stale                 int64
+		crawl                 bool
+		metaBytes, statsBytes []byte
 	)
 
-	if err := row.Scan(&id, &url, &created, &updated, &pId, &crawl, &stale, &lastAlert, &metaBytes); err != nil {
+	if err := row.Scan(&id, &url, &created, &updated, &pId, &crawl, &stale, &lastAlert, &metaBytes, &statsBytes); err != nil {
 		if err == sql.ErrNoRows {
 			return ErrNotFound
 		}
@@ -183,6 +185,13 @@ func (c *Subprimer) UnmarshalSQL(row sqlScannable) error {
 		}
 	}
 
+	stats := &SubprimerStats{}
+	if statsBytes != nil {
+		if err := json.Unmarshal(statsBytes, stats); err != nil {
+			return err
+		}
+	}
+
 	*c = Subprimer{
 		Id:            id,
 		Url:           url,
@@ -193,13 +202,14 @@ func (c *Subprimer) UnmarshalSQL(row sqlScannable) error {
 		StaleDuration: time.Duration(stale * 1000000),
 		LastAlertSent: lastAlert,
 		Meta:          meta,
+		Stats:         stats,
 	}
 
 	return nil
 }
 
 func subprimerCols() string {
-	return "id, url, created, updated, primer_id, crawl, stale_duration, last_alert_sent, meta"
+	return "id, url, created, updated, primer_id, crawl, stale_duration, last_alert_sent, meta, stats"
 }
 
 func (c *Subprimer) SQLArgs() []interface{} {
@@ -214,6 +224,11 @@ func (c *Subprimer) SQLArgs() []interface{} {
 		panic(err)
 	}
 
+	statBytes, err := json.Marshal(c.Stats)
+	if err != nil {
+		panic(err)
+	}
+
 	return []interface{}{
 		c.Id,
 		c.Url,
@@ -224,5 +239,6 @@ func (c *Subprimer) SQLArgs() []interface{} {
 		c.StaleDuration / 1000000,
 		date,
 		metaBytes,
+		statBytes,
 	}
 }

@@ -14,7 +14,7 @@ type Primer struct {
 	Updated     time.Time    `json:"updated"`
 	Title       string       `json:"title"`
 	Description string       `json:"description"`
-	Subprimers  []*Subprimer `json:"crawlUrls"`
+	Subprimers  []*Subprimer `json:"subprimers"`
 }
 
 // Subprimers returns the list of listed urls for crawling associated with this primer
