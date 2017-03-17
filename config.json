@@ -12,6 +12,8 @@
 	"POSTGRES_DB_URL" : "",
 	"PUBLIC_KEY" : "",
 
+  "proxyForceHttps" : true,
+
 	"template_data" : {
 		"title" : "Context",
     "webappScripts" : [
