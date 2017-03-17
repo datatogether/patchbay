@@ -72,6 +72,10 @@ type config struct {
 	// read from env variable: HTTP_AUTH_PASSWORD
 	HttpAuthPassword string `json:"HTTP_AUTH_PASSWORD"`
 
+	// if true, requests that have X-Forwarded-Proto: http will be redirected
+	// to their https variant
+	ProxyForceHttps bool
+
 	// config used for rendering to templates. in config.json set
 	// template_data to an object, and anything provided there
 	// will be available to the templates in the views directory.

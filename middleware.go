@@ -21,6 +21,16 @@ func middleware(handler httprouter.Handle) httprouter.Handle {
 		// 	// If TLS is enabled, set 1 week strict TLS, 1 week for now to prevent catastrophic mess-ups
 		// 	w.Header().Add("Strict-Transport-Security", "max-age=604800")
 		// }
+
+		if cfg.ProxyForceHttps {
+			if r.Header.Get("X-Forwarded-Proto") == "http" {
+				w.Header().Set("Connection", "close")
+				url := "https://" + r.Host + r.URL.String()
+				http.Redirect(w, r, url, http.StatusMovedPermanently)
+				return
+			}
+		}
+
 		handler(w, r, p)
 	}
 }
@@ -46,6 +56,15 @@ func authMiddleware(handler httprouter.Handle) httprouter.Handle {
 			// 	// If TLS is enabled, set 1 week strict TLS, 1 week for now to prevent catastrophic mess-ups
 			// 	w.Header().Add("Strict-Transport-Security", "max-age=604800")
 			// }
+
+			if cfg.ProxyForceHttps {
+				if r.Header.Get("X-Forwarded-Proto") == "http" {
+					w.Header().Set("Connection", "close")
+					url := "https://" + r.Host + r.URL.String()
+					http.Redirect(w, r, url, http.StatusMovedPermanently)
+					return
+				}
+			}
 			handler(w, r, p)
 		}
 	}

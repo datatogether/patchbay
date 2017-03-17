@@ -12,6 +12,8 @@
   "POSTGRES_DB_URL" : "postgresql://b5@localhost:5432/sentry?sslmode=disable",
   "PUBLIC_KEY" : "nothing_yet",
 
+  "proxyForceHttps" : true,
+
   "template_data" : {
     "title" : "Context",
     "webappScripts" : [

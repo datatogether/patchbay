@@ -11,6 +11,8 @@
 
   "POSTGRES_DB_URL" : "",
 
+  "proxyForceHttps" : true,
+
   "template_data" : {
     "title" : "Sentry"
   }
