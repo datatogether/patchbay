@@ -11,10 +11,9 @@ import (
 // templates is a collection of views for rendering with the renderTemplate function
 // see homeHandler for an example
 var templates = template.Must(template.ParseFiles(
-	"views/index.html",
+	"views/webapp.html",
 	"views/accessDenied.html",
 	"views/notFound.html",
-	"views/urls.html",
 ))
 
 func ArchiveUrlHandler(w http.ResponseWriter, r *http.Request) {
@@ -39,7 +38,7 @@ func ArchiveUrlHandler(w http.ResponseWriter, r *http.Request) {
 
 // WebappHandler renders the home page
 func WebappHandler(w http.ResponseWriter, r *http.Request) {
-	renderTemplate(w, "index.html")
+	renderTemplate(w, "webapp.html")
 }
 
 func HandleWebsocketUpgrade(w http.ResponseWriter, r *http.Request) {
