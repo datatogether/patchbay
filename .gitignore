@@ -1,5 +1,4 @@
 .DS_Store
-config.production.json
-config.test.json
+config.*.json
 patchbay
 gin-bin
