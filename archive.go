@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/qri-io/archive"
 	"time"
 )
 
@@ -43,7 +44,7 @@ func (c *Client) ArchiveUrl(db sqlQueryExecable, reqId, url string) {
 	}
 
 	logger.Println("archiving %s", url)
-	u := &Url{Url: url}
+	u := &archive.Url{Url: url}
 	if _, err := u.ParsedUrl(); err != nil {
 		logger.Println(err.Error())
 		c.SendResponse(&ClientResponse{
@@ -55,7 +56,7 @@ func (c *Client) ArchiveUrl(db sqlQueryExecable, reqId, url string) {
 	}
 
 	if err := u.Read(db); err != nil {
-		if err == ErrNotFound {
+		if err == archive.ErrNotFound {
 			if err := u.Insert(db); err != nil {
 				logger.Println(err.Error())
 				c.SendResponse(&ClientResponse{
@@ -114,7 +115,7 @@ func (c *Client) ArchiveUrl(db sqlQueryExecable, reqId, url string) {
 		Data:      links,
 	})
 
-	go func(db sqlQueryExecable, links []*Link) {
+	go func(db sqlQueryExecable, links []*archive.Link) {
 		// GET each destination link from this page in parallel
 		for _, l := range links {
 			// need a sleep here to avoid bombing server with requests
@@ -167,15 +168,15 @@ func (c *Client) ArchiveUrl(db sqlQueryExecable, reqId, url string) {
 }
 
 // ArchiveUrl GET's a url and if it's an HTML page, any links it directly references
-func ArchiveUrl(db sqlQueryExecable, url string, done func(err error)) (*Url, []*Link, error) {
-	u := &Url{Url: url}
+func ArchiveUrl(db sqlQueryExecable, url string, done func(err error)) (*archive.Url, []*archive.Link, error) {
+	u := &archive.Url{Url: url}
 	if _, err := u.ParsedUrl(); err != nil {
 		done(err)
 		return nil, nil, err
 	}
 
 	if err := u.Read(db); err != nil {
-		if err == ErrNotFound {
+		if err == archive.ErrNotFound {
 			if err := u.Insert(db); err != nil {
 				done(err)
 				return nil, nil, err
@@ -203,7 +204,7 @@ func ArchiveUrl(db sqlQueryExecable, url string, done func(err error)) (*Url, []
 		errs <- err
 	}
 
-	go func(db sqlQueryExecable, links []*Link) {
+	go func(db sqlQueryExecable, links []*archive.Link) {
 		// GET each destination link from this page in parallel
 		for _, l := range links {
 			if _, err := l.Dst.Get(db, taskDone); err != nil {
@@ -230,7 +231,7 @@ func ArchiveUrl(db sqlQueryExecable, url string, done func(err error)) (*Url, []
 	return u, links, err
 }
 
-func ArchiveUrlSync(db sqlQueryExecable, url string) (*Url, error) {
+func ArchiveUrlSync(db sqlQueryExecable, url string) (*archive.Url, error) {
 	done := make(chan error)
 	u, _, err := ArchiveUrl(db, url, func(err error) {
 		done <- err

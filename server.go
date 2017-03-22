@@ -7,8 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-
-	"github.com/julienschmidt/httprouter"
 )
 
 var (
@@ -43,41 +41,34 @@ func main() {
 	room = newRoom()
 	go room.run()
 
-	// initialize a router to handle requests
-	r := httprouter.New()
+	s := &http.Server{}
+	m := http.NewServeMux()
+	m.HandleFunc("/.well-known/acme-challenge/", CertbotHandler)
 
-	r.GET("/", middleware(WebappHandler))
-	r.GET("/url", middleware(WebappHandler))
-	r.GET("/content/:hash", middleware(WebappHandler))
-	r.GET("/metadata/:hash", middleware(WebappHandler))
-	r.GET("/settings", middleware(WebappHandler))
-	r.GET("/settings/keys", middleware(WebappHandler))
-	r.GET("/users/:user", middleware(WebappHandler))
-	r.GET("/signup", middleware(WebappHandler))
-	r.GET("/login", middleware(WebappHandler))
-	r.GET("/login/forgot", middleware(WebappHandler))
-	r.GET("/primers", middleware(WebappHandler))
-	r.GET("/primers/:id", middleware(WebappHandler))
-	r.GET("/subprimers", middleware(WebappHandler))
-	r.GET("/subprimers/:id", middleware(WebappHandler))
-	r.GET("/.well-known/acme-challenge/:content", CertbotHandler)
+	m.Handle("/", middleware(WebappHandler))
+	m.Handle("/url", middleware(WebappHandler))
+	m.Handle("/content/", middleware(WebappHandler))
+	m.Handle("/metadata/", middleware(WebappHandler))
+	m.Handle("/settings", middleware(WebappHandler))
+	m.Handle("/settings/keys", middleware(WebappHandler))
+	m.Handle("/users/", middleware(WebappHandler))
+	m.Handle("/signup", middleware(WebappHandler))
+	m.Handle("/login", middleware(WebappHandler))
+	m.Handle("/login/forgot", middleware(WebappHandler))
+	m.Handle("/primers", middleware(WebappHandler))
+	m.Handle("/primers/", middleware(WebappHandler))
+	m.Handle("/subprimers", middleware(WebappHandler))
+	m.Handle("/subprimers/", middleware(WebappHandler))
 
-	r.GET("/ws", middleware(HandleWebsocketUpgrade))
-
-	// serve static content from public directories
-	r.ServeFiles("/css/*filepath", http.Dir("public/css"))
-	r.ServeFiles("/js/*filepath", http.Dir("public/js"))
+	m.Handle("/ws", middleware(HandleWebsocketUpgrade))
 
 	// print notable config settings
 	printConfigInfo()
 
 	// fire it up!
 	fmt.Println("starting server on port", cfg.Port)
-	// non-tls configured servers end here
-	if !cfg.TLS {
-		logger.Fatal(StartHttpServer(cfg.Port, r))
-	}
+
 	// start server wrapped in a log.Fatal b/c http.ListenAndServe will not
 	// return unless there's an error
-	logger.Fatal(StartHttpsServer(cfg.Port, r))
+	logger.Fatal(StartServer(cfg, s))
 }

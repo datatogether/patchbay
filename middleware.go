@@ -5,14 +5,12 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-
-	"github.com/julienschmidt/httprouter"
 )
 
 // middleware handles request logging
-func middleware(handler httprouter.Handle) httprouter.Handle {
+func middleware(handler http.HandlerFunc) http.HandlerFunc {
 	// no-auth middware func
-	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		// poor man's logging:
 		fmt.Println(r.Method, r.URL.Path, time.Now())
 
@@ -34,15 +32,15 @@ func middleware(handler httprouter.Handle) httprouter.Handle {
 		// 	w.Header().Add("Strict-Transport-Security", "max-age=604800")
 		// }
 
-		handler(w, r, p)
+		handler(w, r)
 	}
 }
 
 // authMiddleware adds http basic auth if configured
-func authMiddleware(handler httprouter.Handle) httprouter.Handle {
+func authMiddleware(handler http.HandlerFunc) http.HandlerFunc {
 	// return auth middleware if configuration settings are present
 	if cfg.HttpAuthUsername != "" && cfg.HttpAuthPassword != "" {
-		return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+		return func(w http.ResponseWriter, r *http.Request) {
 			// poor man's logging:
 			fmt.Println(r.Method, r.URL.Path, time.Now())
 
@@ -62,7 +60,8 @@ func authMiddleware(handler httprouter.Handle) httprouter.Handle {
 			if !ok || subtle.ConstantTimeCompare([]byte(user), []byte(cfg.HttpAuthUsername)) != 1 || subtle.ConstantTimeCompare([]byte(pass), []byte(cfg.HttpAuthPassword)) != 1 {
 				w.Header().Set("WWW-Authenticate", `Basic realm="Please enter your username and password for this site"`)
 				w.WriteHeader(http.StatusUnauthorized)
-				renderTemplate(w, "accessDenied.html")
+				// renderTemplate(w, "accessDenied.html")
+				w.Write([]byte("access denied \n"))
 				return
 			}
 
@@ -72,7 +71,7 @@ func authMiddleware(handler httprouter.Handle) httprouter.Handle {
 			// 	w.Header().Add("Strict-Transport-Security", "max-age=604800")
 			// }
 
-			handler(w, r, p)
+			handler(w, r)
 		}
 	}
 

@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/qri-io/archive"
 )
 
 // Action is a collection of typed events for exchange between client & server
@@ -44,7 +45,6 @@ type ClientResponse struct {
 var ClientReqActions = []ClientAction{
 	MsgReqAct{},
 	SearchReqAct{},
-	ArchiveUrlAct{},
 	FetchUrlAct{},
 	FetchInboundLinksAct{},
 	FetchOutboundLinksAct{},
@@ -109,7 +109,7 @@ func (s *SearchReqAct) Exec() (res *ClientResponse) {
 	if s.Page > 0 {
 		s.Page = s.Page - 1
 	}
-	results, err := Search(appDB, s.Query, s.PageSize, s.Page*s.PageSize)
+	results, err := archive.Search(appDB, s.Query, s.PageSize, s.Page*s.PageSize)
 	if err != nil {
 		return &ClientResponse{
 			Type:      s.FailureType(),
@@ -143,7 +143,7 @@ func (FetchUrlAct) Parse(reqId string, data json.RawMessage) ClientRequestAction
 }
 
 func (a *FetchUrlAct) Exec() (res *ClientResponse) {
-	u := &Url{Url: a.Url}
+	u := &archive.Url{Url: a.Url}
 	if err := u.Read(appDB); err != nil {
 		return &ClientResponse{
 			Type:      a.FailureType(),
@@ -176,7 +176,7 @@ func (FetchInboundLinksAct) Parse(reqId string, data json.RawMessage) ClientRequ
 }
 
 func (a *FetchInboundLinksAct) Exec() (res *ClientResponse) {
-	links, err := ReadSrcLinks(appDB, &Url{Url: a.Url})
+	links, err := archive.ReadSrcLinks(appDB, &archive.Url{Url: a.Url})
 	if err != nil {
 		return &ClientResponse{
 			Type:      a.FailureType(),
@@ -210,7 +210,7 @@ func (FetchOutboundLinksAct) Parse(reqId string, data json.RawMessage) ClientReq
 }
 
 func (a *FetchOutboundLinksAct) Exec() (res *ClientResponse) {
-	links, err := ReadDstLinks(appDB, &Url{Url: a.Url})
+	links, err := archive.ReadDstLinks(appDB, &archive.Url{Url: a.Url})
 	if err != nil {
 		logger.Println(err.Error())
 		return &ClientResponse{
@@ -225,39 +225,6 @@ func (a *FetchOutboundLinksAct) Exec() (res *ClientResponse) {
 		RequestId: a.RequestId,
 		Schema:    "LINK_ARRAY",
 		Data:      links,
-	}
-}
-
-// ArchiveUrlAct triggers archiving a url
-type ArchiveUrlAct struct {
-	ReqAction
-	Url string
-}
-
-func (ArchiveUrlAct) Type() string        { return "URL_ARCHIVE_REQUEST" }
-func (ArchiveUrlAct) SuccessType() string { return "URL_ARCHIVE_SUCCESS" }
-func (ArchiveUrlAct) FailureType() string { return "URL_ARCHIVE_FAILURE" }
-
-func (ArchiveUrlAct) Parse(reqId string, data json.RawMessage) ClientRequestAction {
-	a := &ArchiveUrlAct{}
-	a.RequestId = reqId
-	a.err = json.Unmarshal(data, a)
-	return a
-}
-
-func (a *ArchiveUrlAct) Exec() (res *ClientResponse) {
-	url, err := ArchiveUrlSync(appDB, a.Url)
-	if err != nil {
-		return &ClientResponse{
-			Type:      a.FailureType(),
-			RequestId: a.RequestId,
-			Error:     err.Error(),
-		}
-	}
-	return &ClientResponse{
-		Type:   a.SuccessType(),
-		Schema: "URL",
-		Data:   url,
 	}
 }
 
@@ -279,7 +246,7 @@ func (FetchContentUrlsAction) Parse(reqId string, data json.RawMessage) ClientRe
 }
 
 func (a *FetchContentUrlsAction) Exec() (res *ClientResponse) {
-	urls, err := UrlsForHash(appDB, a.Hash)
+	urls, err := archive.UrlsForHash(appDB, a.Hash)
 	if err != nil {
 		return &ClientResponse{
 			Type:      a.FailureType(),
@@ -314,9 +281,9 @@ func (FetchMetadataAction) Parse(reqId string, data json.RawMessage) ClientReque
 }
 
 func (a *FetchMetadataAction) Exec() (res *ClientResponse) {
-	m, err := LatestMetadata(appDB, a.KeyId, a.Subject)
+	m, err := archive.LatestMetadata(appDB, a.KeyId, a.Subject)
 	if err != nil {
-		if err == ErrNotFound {
+		if err == archive.ErrNotFound {
 			return &ClientResponse{
 				Type:      a.SuccessType(),
 				RequestId: a.RequestId,
@@ -359,8 +326,7 @@ func (SaveMetadataAction) Parse(reqId string, data json.RawMessage) ClientReques
 }
 
 func (a *SaveMetadataAction) Exec() (res *ClientResponse) {
-
-	m, err := NextMetadata(appDB, a.KeyId, a.Subject)
+	m, err := archive.NextMetadata(appDB, a.KeyId, a.Subject)
 	if err != nil {
 		logger.Println(err.Error())
 		return &ClientResponse{
@@ -407,9 +373,7 @@ func (FetchPrimersAction) Parse(reqId string, data json.RawMessage) ClientReques
 }
 
 func (a *FetchPrimersAction) Exec() (res *ClientResponse) {
-	// for now we're proxying domains as "primers", more bridging work
-	// is needed
-	domains, err := ListPrimers(appDB, 50, 0)
+	primers, err := archive.ListPrimers(appDB, 50, 0)
 	if err != nil {
 		logger.Println(err.Error())
 		return &ClientResponse{
@@ -423,7 +387,7 @@ func (a *FetchPrimersAction) Exec() (res *ClientResponse) {
 		Type:      a.SuccessType(),
 		RequestId: a.RequestId,
 		Schema:    "PRIMER_ARRAY",
-		Data:      domains,
+		Data:      primers,
 	}
 }
 
@@ -445,7 +409,7 @@ func (FetchPrimerAction) Parse(reqId string, data json.RawMessage) ClientRequest
 }
 
 func (a *FetchPrimerAction) Exec() (res *ClientResponse) {
-	p := &Primer{Id: a.Id}
+	p := &archive.Primer{Id: a.Id}
 	if err := p.Read(appDB); err != nil {
 		logger.Println(err.Error())
 		return &ClientResponse{
@@ -490,7 +454,7 @@ func (FetchSubprimerAction) Parse(reqId string, data json.RawMessage) ClientRequ
 }
 
 func (a *FetchSubprimerAction) Exec() (res *ClientResponse) {
-	s := &Subprimer{Id: a.Id}
+	s := &archive.Subprimer{Id: a.Id}
 	if err := s.Read(appDB); err != nil {
 		logger.Println(err.Error())
 		return &ClientResponse{
@@ -537,7 +501,7 @@ func (FetchSubprimerUrlsAction) Parse(reqId string, data json.RawMessage) Client
 }
 
 func (a *FetchSubprimerUrlsAction) Exec() (res *ClientResponse) {
-	s := &Subprimer{Id: a.Id}
+	s := &archive.Subprimer{Id: a.Id}
 	if err := s.Read(appDB); err != nil {
 		logger.Println(err.Error())
 		return &ClientResponse{
@@ -594,7 +558,7 @@ func (FetchConsensusAction) Parse(reqId string, data json.RawMessage) ClientRequ
 }
 
 func (a *FetchConsensusAction) Exec() (res *ClientResponse) {
-	blocks, err := MetadataForSubject(appDB, a.Subject)
+	blocks, err := archive.MetadataForSubject(appDB, a.Subject)
 	if err != nil {
 		logger.Println(err.Error())
 		return &ClientResponse{
@@ -604,7 +568,7 @@ func (a *FetchConsensusAction) Exec() (res *ClientResponse) {
 		}
 	}
 
-	c, values, err := SumConsensus(a.Subject, blocks)
+	c, values, err := archive.SumConsensus(a.Subject, blocks)
 	if err != nil {
 		logger.Println(err.Error())
 		return &ClientResponse{

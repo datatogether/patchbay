@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/qri-io/archive"
 	"testing"
 	"time"
 )
@@ -10,9 +11,9 @@ func TestArchive(t *testing.T) {
 		t.Skip("short mode, skipping.")
 		return
 	}
-	defer resetTestData(appDB, "urls", "links", "snapshots")
+	// defer resetTestData(appDB, "urls", "links", "snapshots")
 	var (
-		links []*Link
+		links []*archive.Link
 		res   *Url
 		err   error
 	)
