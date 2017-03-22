@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"github.com/gchaincl/dotsql"
 	"log"
 	"net/http"
 	"os"
@@ -19,6 +20,8 @@ var (
 	// application database connection
 	appDB *sql.DB
 
+	sqlCmds *dotsql.DotSql
+
 	room *Room
 )
 
@@ -28,6 +31,11 @@ func main() {
 	if err != nil {
 		// panic if the server is missing a vital configuration detail
 		panic(fmt.Errorf("server configuration error: %s", err.Error()))
+	}
+
+	sqlCmds, err = dotsql.LoadFromFile("sql/commands.sql")
+	if err != nil {
+		panic(fmt.Errorf("error loading sql commands: %s", err.Error()))
 	}
 
 	connectToAppDb()

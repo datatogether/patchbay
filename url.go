@@ -270,6 +270,9 @@ func (u *Url) Read(db sqlQueryable) error {
 	if u.Url != "" {
 		row := db.QueryRow(fmt.Sprintf("select %s from urls where url = $1", urlCols()), u.Url)
 		return u.UnmarshalSQL(row)
+	} else if u.Hash != "" {
+		row := db.QueryRow(fmt.Sprintf("select %s from urls where hash = $1", urlCols()), u.Url)
+		return u.UnmarshalSQL(row)
 	}
 	return ErrNotFound
 }

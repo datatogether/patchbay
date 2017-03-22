@@ -129,6 +129,24 @@ func (m *Metadata) Write(db sqlQueryExecable) error {
 	}
 
 	_, err = db.Exec("insert into metadata values ($1, $2, $3, $4, $5, $6, false)", m.Hash, m.Timestamp.In(time.UTC).Round(time.Second), m.KeyId, m.Subject, m.Prev, metaBytes)
+
+	if str, ok := m.Meta["title"].(string); ok && str != "" {
+		go func() {
+			u := &Url{Hash: m.Subject}
+			if err := u.Read(db); err != nil {
+				logger.Println(err.Error())
+				return
+			}
+
+			// TODO - this is a straight set, should be derived from consensus calculation
+			u.Title = str
+			if err := u.Update(db); err != nil {
+				logger.Println(err.Error())
+				return
+			}
+		}()
+	}
+
 	return err
 }
 
