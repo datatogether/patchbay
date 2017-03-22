@@ -31,11 +31,6 @@ func main() {
 		panic(fmt.Errorf("server configuration error: %s", err.Error()))
 	}
 
-	sqlCmds, err = dotsql.LoadFromFile("sql/commands.sql")
-	if err != nil {
-		panic(fmt.Errorf("error loading sql commands: %s", err.Error()))
-	}
-
 	connectToAppDb()
 
 	room = newRoom()
@@ -61,6 +56,9 @@ func main() {
 	m.Handle("/subprimers/", middleware(WebappHandler))
 
 	m.Handle("/ws", middleware(HandleWebsocketUpgrade))
+
+	// connect mux to server
+	s.Handler = m
 
 	// print notable config settings
 	printConfigInfo()
