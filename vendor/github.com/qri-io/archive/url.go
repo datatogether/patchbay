@@ -60,6 +60,9 @@ type Url struct {
 
 	// Hash is a multihash sha-256 of res.Body
 	Hash string `json:"hash,omitempty"`
+
+	// Url to saved content
+	ContentUrl string `json:"contentUrl,omitempty"`
 }
 
 // ParsedUrl is a convenience wrapper around url.Parse
@@ -130,7 +133,7 @@ func (u *Url) HandleGetResponse(db sqlQueryExecable, res *http.Response, done fu
 	}
 
 	// additional processing for html documents
-	if strings.Contains(strings.ToLower(u.ContentType), "text/html") {
+	if u.ContentSniff == "text/html; charset=utf-8" {
 		var doc *goquery.Document
 		// Process the body to find links
 		doc, err = goquery.NewDocumentFromReader(bytes.NewBuffer(f.Data))
@@ -483,6 +486,10 @@ func (u *Url) UnmarshalSQL(row sqlScannable) (err error) {
 		Headers:       headers,
 		Meta:          meta,
 		Hash:          hash,
+	}
+
+	if u.Hash != "" {
+		u.ContentUrl = FileUrl(hash)
 	}
 
 	return nil

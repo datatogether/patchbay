@@ -6,6 +6,28 @@ import (
 	"github.com/qri-io/archive"
 )
 
+// ClientReqActions is a list of all actions a client may request
+var ClientReqActions = []ClientAction{
+	MsgReqAct{},
+	SearchReqAct{},
+	FetchUrlAct{},
+	FetchInboundLinksAct{},
+	FetchOutboundLinksAct{},
+	FetchContentUrlsAction{},
+	FetchMetadataAction{},
+	SaveMetadataAction{},
+	FetchPrimersAction{},
+	FetchPrimerAction{},
+	FetchSubprimerAction{},
+	FetchSubprimerUrlsAction{},
+	FetchSubprimerAttributedUrlsAction{},
+	FetchConsensusAction{},
+	FetchCollectionAction{},
+	FetchCollectionsAction{},
+	SaveCollectionAction{},
+	DeleteCollectionAction{},
+}
+
 // Action is a collection of typed events for exchange between client & server
 type Action interface {
 	Type() string
@@ -39,23 +61,6 @@ type ClientResponse struct {
 	PageSize  int         `json:"pageSize,omitempty"`
 	Id        string      `json:"id,omitempty"`
 	Data      interface{} `json:"data,omitempty"`
-}
-
-// ClientReqActions is a list of all actions a client may request
-var ClientReqActions = []ClientAction{
-	MsgReqAct{},
-	SearchReqAct{},
-	FetchUrlAct{},
-	FetchInboundLinksAct{},
-	FetchOutboundLinksAct{},
-	FetchContentUrlsAction{},
-	FetchMetadataAction{},
-	SaveMetadataAction{},
-	FetchPrimersAction{},
-	FetchPrimerAction{},
-	FetchSubprimerAction{},
-	FetchSubprimerUrlsAction{},
-	FetchConsensusAction{},
 }
 
 type ReqAction struct {
@@ -511,7 +516,7 @@ func (a *FetchSubprimerUrlsAction) Exec() (res *ClientResponse) {
 		}
 	}
 
-	urls, err := s.UndescribedContent(appDB, 200, 0)
+	urls, err := s.UndescribedContent(appDB, 100, 0)
 	if err != nil {
 		logger.Println(err.Error())
 		return &ClientResponse{
@@ -521,13 +526,61 @@ func (a *FetchSubprimerUrlsAction) Exec() (res *ClientResponse) {
 		}
 	}
 
-	// resStruct := struct {
-	// 	Subprimer
-	// 	UndescribedUrls []*Url `json:"undescribedUrls"`
-	// }{
-	// 	Subprimer: s,
-	// 	Urls:      urls,
-	// }
+	return &ClientResponse{
+		Type:      a.SuccessType(),
+		RequestId: a.RequestId,
+		Schema:    "URL_ARRAY",
+		Id:        a.Id,
+		Page:      a.Page,
+		PageSize:  a.PageSize,
+		Data:      urls,
+	}
+}
+
+type FetchSubprimerAttributedUrlsAction struct {
+	ReqAction
+	Id       string
+	Page     int
+	PageSize int
+}
+
+func (FetchSubprimerAttributedUrlsAction) Type() string {
+	return "SUBPRIMER_ATTRIBUTED_URLS_REQUEST"
+}
+func (FetchSubprimerAttributedUrlsAction) SuccessType() string {
+	return "SUBPRIMER_ATTRIBUTED_URLS_SUCCESS"
+}
+func (FetchSubprimerAttributedUrlsAction) FailureType() string {
+	return "SUBPRIMER_ATTRIBUTED_URLS_FAILURE"
+}
+
+func (FetchSubprimerAttributedUrlsAction) Parse(reqId string, data json.RawMessage) ClientRequestAction {
+	a := &FetchSubprimerAttributedUrlsAction{}
+	a.RequestId = reqId
+	a.err = json.Unmarshal(data, a)
+	return a
+}
+
+func (a *FetchSubprimerAttributedUrlsAction) Exec() (res *ClientResponse) {
+	s := &archive.Subprimer{Id: a.Id}
+	if err := s.Read(appDB); err != nil {
+		logger.Println(err.Error())
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
+
+	urls, err := s.DescribedContent(appDB, 100, 0)
+	if err != nil {
+		logger.Println(err.Error())
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
 
 	return &ClientResponse{
 		Type:      a.SuccessType(),
@@ -596,5 +649,148 @@ func (a *FetchConsensusAction) Exec() (res *ClientResponse) {
 			"subject": a.Subject,
 			"data":    md,
 		},
+	}
+}
+
+// FetchCollectionsAction grabs a page of collections
+type FetchCollectionsAction struct {
+	ReqAction
+	Page     int
+	PageSize int
+}
+
+func (FetchCollectionsAction) Type() string        { return "COLLECTIONS_FETCH_REQUEST" }
+func (FetchCollectionsAction) SuccessType() string { return "COLLECTIONS_FETCH_SUCCESS" }
+func (FetchCollectionsAction) FailureType() string { return "COLLECTIONS_FETCH_FAILURE" }
+
+func (FetchCollectionsAction) Parse(reqId string, data json.RawMessage) ClientRequestAction {
+	a := &FetchCollectionsAction{}
+	a.RequestId = reqId
+	a.err = json.Unmarshal(data, a)
+	return a
+}
+
+func (a *FetchCollectionsAction) Exec() (res *ClientResponse) {
+	collections, err := archive.ListCollections(appDB, 50, 0)
+	if err != nil {
+		logger.Println(err.Error())
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
+
+	return &ClientResponse{
+		Type:      a.SuccessType(),
+		RequestId: a.RequestId,
+		Schema:    "COLLECTION_ARRAY",
+		Data:      collections,
+	}
+}
+
+// FetchCollectionAction grabs a page of collections
+type FetchCollectionAction struct {
+	ReqAction
+	Id string
+}
+
+func (FetchCollectionAction) Type() string        { return "COLLECTION_FETCH_REQUEST" }
+func (FetchCollectionAction) SuccessType() string { return "COLLECTION_FETCH_SUCCESS" }
+func (FetchCollectionAction) FailureType() string { return "COLLECTION_FETCH_FAILURE" }
+
+func (FetchCollectionAction) Parse(reqId string, data json.RawMessage) ClientRequestAction {
+	a := &FetchCollectionAction{}
+	a.RequestId = reqId
+	a.err = json.Unmarshal(data, a)
+	return a
+}
+
+func (a *FetchCollectionAction) Exec() (res *ClientResponse) {
+	c := &archive.Collection{Id: a.Id}
+	if err := c.Read(appDB); err != nil {
+		logger.Println(err.Error())
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
+
+	return &ClientResponse{
+		Type:      a.SuccessType(),
+		RequestId: a.RequestId,
+		Schema:    "COLLECTION",
+		Data:      c,
+	}
+}
+
+// SaveCollectionAction triggers archiving a url
+type SaveCollectionAction struct {
+	ReqAction
+	Collection *archive.Collection `json:"collection"`
+}
+
+func (SaveCollectionAction) Type() string        { return "COLLECTION_SAVE_REQUEST" }
+func (SaveCollectionAction) SuccessType() string { return "COLLECTION_SAVE_SUCCESS" }
+func (SaveCollectionAction) FailureType() string { return "COLLECTION_SAVE_FAILURE" }
+
+func (SaveCollectionAction) Parse(reqId string, data json.RawMessage) ClientRequestAction {
+	a := &SaveCollectionAction{}
+	a.RequestId = reqId
+	a.err = json.Unmarshal(data, a)
+	return a
+}
+
+func (a *SaveCollectionAction) Exec() (res *ClientResponse) {
+	if err := a.Collection.Save(appDB); err != nil {
+		logger.Println(err.Error())
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
+
+	return &ClientResponse{
+		Type:      a.SuccessType(),
+		RequestId: a.RequestId,
+		Schema:    "COLLECTION",
+		Data:      a,
+	}
+}
+
+// DeleteCollectionAction triggers archiving a url
+type DeleteCollectionAction struct {
+	ReqAction
+	Collection *archive.Collection `json:"collection"`
+}
+
+func (DeleteCollectionAction) Type() string        { return "COLLECTION_DELETE_REQUEST" }
+func (DeleteCollectionAction) SuccessType() string { return "COLLECTION_DELETE_SUCCESS" }
+func (DeleteCollectionAction) FailureType() string { return "COLLECTION_DELETE_FAILURE" }
+
+func (DeleteCollectionAction) Parse(reqId string, data json.RawMessage) ClientRequestAction {
+	a := &DeleteCollectionAction{}
+	a.RequestId = reqId
+	a.err = json.Unmarshal(data, a)
+	return a
+}
+
+func (a *DeleteCollectionAction) Exec() (res *ClientResponse) {
+	if err := a.Collection.Delete(appDB); err != nil {
+		logger.Println(err.Error())
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
+
+	return &ClientResponse{
+		Type:      a.SuccessType(),
+		RequestId: a.RequestId,
+		Schema:    "COLLECTION",
+		Data:      a,
 	}
 }
