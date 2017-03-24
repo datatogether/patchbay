@@ -26,6 +26,7 @@ var ClientReqActions = []ClientAction{
 	FetchCollectionsAction{},
 	SaveCollectionAction{},
 	DeleteCollectionAction{},
+	MetadataByKeyRequest{},
 }
 
 // Action is a collection of typed events for exchange between client & server
@@ -611,7 +612,7 @@ func (FetchConsensusAction) Parse(reqId string, data json.RawMessage) ClientRequ
 }
 
 func (a *FetchConsensusAction) Exec() (res *ClientResponse) {
-	blocks, err := archive.MetadataForSubject(appDB, a.Subject)
+	blocks, err := archive.MetadataBySubject(appDB, a.Subject)
 	if err != nil {
 		logger.Println(err.Error())
 		return &ClientResponse{
@@ -792,5 +793,43 @@ func (a *DeleteCollectionAction) Exec() (res *ClientResponse) {
 		RequestId: a.RequestId,
 		Schema:    "COLLECTION",
 		Data:      a,
+	}
+}
+
+// MetadataByKeyRequest triggers archiving a url
+type MetadataByKeyRequest struct {
+	ReqAction
+	Key      string `json:"key"`
+	Page     int    `json:"page"`
+	PageSize int    `json:"pageSize"`
+}
+
+func (MetadataByKeyRequest) Type() string        { return "METADATA_BY_KEY_REQUEST" }
+func (MetadataByKeyRequest) SuccessType() string { return "METADATA_BY_KEY_SUCCESS" }
+func (MetadataByKeyRequest) FailureType() string { return "METADATA_BY_KEY_FAILURE" }
+
+func (MetadataByKeyRequest) Parse(reqId string, data json.RawMessage) ClientRequestAction {
+	a := &MetadataByKeyRequest{}
+	a.RequestId = reqId
+	a.err = json.Unmarshal(data, a)
+	return a
+}
+
+func (a *MetadataByKeyRequest) Exec() (res *ClientResponse) {
+	results, err := archive.MetadataByKey(appDB, a.Key, a.PageSize, (a.Page-1)*a.PageSize)
+	if err != nil {
+		logger.Println(err.Error())
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
+
+	return &ClientResponse{
+		Type:      a.SuccessType(),
+		RequestId: a.RequestId,
+		Schema:    "METADATA_ARRAY",
+		Data:      results,
 	}
 }
