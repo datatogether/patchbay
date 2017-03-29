@@ -27,6 +27,7 @@ var ClientReqActions = []ClientAction{
 	SaveCollectionAction{},
 	DeleteCollectionAction{},
 	MetadataByKeyRequest{},
+	FetchRecentContentUrlsAction{},
 }
 
 // Action is a collection of typed events for exchange between client & server
@@ -231,6 +232,45 @@ func (a *FetchOutboundLinksAct) Exec() (res *ClientResponse) {
 		RequestId: a.RequestId,
 		Schema:    "LINK_ARRAY",
 		Data:      links,
+	}
+}
+
+// FetchRecentContentUrlsAction grabs a page of recently getted (no, "getted" is not a word)
+// urls that lead to content
+type FetchRecentContentUrlsAction struct {
+	ReqAction
+	Page     int
+	PageSize int
+}
+
+func (FetchRecentContentUrlsAction) Type() string        { return "CONTENT_RECENT_URLS_REQUEST" }
+func (FetchRecentContentUrlsAction) SuccessType() string { return "CONTENT_RECENT_URLS_SUCCESS" }
+func (FetchRecentContentUrlsAction) FailureType() string { return "CONTENT_RECENT_URLS_FAILURE" }
+
+func (FetchRecentContentUrlsAction) Parse(reqId string, data json.RawMessage) ClientRequestAction {
+	a := &FetchRecentContentUrlsAction{}
+	a.RequestId = reqId
+	a.err = json.Unmarshal(data, a)
+	return a
+}
+
+func (a *FetchRecentContentUrlsAction) Exec() (res *ClientResponse) {
+	urls, err := archive.RecentContentUrls(appDB, a.Page, a.PageSize)
+	if err != nil {
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
+
+	return &ClientResponse{
+		Type:      a.SuccessType(),
+		RequestId: a.RequestId,
+		Schema:    "URL_ARRAY",
+		Page:      a.Page,
+		PageSize:  a.PageSize,
+		Data:      urls,
 	}
 }
 
