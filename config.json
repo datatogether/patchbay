@@ -15,7 +15,8 @@
   "proxyForceHttps" : true,
 
 	"template_data" : {
-		"title" : "Context",
+		"title" : "Archivers 2.0",
+    "segmentApiToken" : "FwUGnmKzryJpDpApVzdQy9rmwwWSiK1M",
     "webappScripts" : [
       "https://s3.amazonaws.com/static.qri.io/js/archivers/vendor.min.js",
       "https://s3.amazonaws.com/static.qri.io/js/archivers/app.min.js"
