@@ -18,10 +18,10 @@ var ClientReqActions = []ClientAction{
 	SaveMetadataAction{},
 	FetchPrimersAction{},
 	FetchPrimerAction{},
-	FetchSubprimersAction{},
-	FetchSubprimerAction{},
-	FetchSubprimerUrlsAction{},
-	FetchSubprimerAttributedUrlsAction{},
+	FetchSourcesAction{},
+	FetchSourceAction{},
+	FetchSourceUrlsAction{},
+	FetchSourceAttributedUrlsAction{},
 	FetchConsensusAction{},
 	FetchCollectionAction{},
 	FetchCollectionsAction{},
@@ -466,7 +466,16 @@ func (a *FetchPrimerAction) Exec() (res *ClientResponse) {
 		}
 	}
 
-	if err := p.ReadSubprimers(appDB); err != nil {
+	if err := p.ReadSubPrimers(appDB); err != nil {
+		logger.Println(err.Error())
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
+
+	if err := p.ReadSources(appDB); err != nil {
 		logger.Println(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
@@ -483,26 +492,26 @@ func (a *FetchPrimerAction) Exec() (res *ClientResponse) {
 	}
 }
 
-// FetchSubprimersAction grabs a page of primers
-type FetchSubprimersAction struct {
+// FetchSourcesAction grabs a page of primers
+type FetchSourcesAction struct {
 	ReqAction
 	Page     int
 	PageSize int
 }
 
-func (FetchSubprimersAction) Type() string        { return "SUBPRIMERS_FETCH_REQUEST" }
-func (FetchSubprimersAction) SuccessType() string { return "SUBPRIMERS_FETCH_SUCCESS" }
-func (FetchSubprimersAction) FailureType() string { return "SUBPRIMERS_FETCH_FAILURE" }
+func (FetchSourcesAction) Type() string        { return "SOURCES_FETCH_REQUEST" }
+func (FetchSourcesAction) SuccessType() string { return "SOURCES_FETCH_SUCCESS" }
+func (FetchSourcesAction) FailureType() string { return "SOURCES_FETCH_FAILURE" }
 
-func (FetchSubprimersAction) Parse(reqId string, data json.RawMessage) ClientRequestAction {
-	a := &FetchSubprimersAction{}
+func (FetchSourcesAction) Parse(reqId string, data json.RawMessage) ClientRequestAction {
+	a := &FetchSourcesAction{}
 	a.RequestId = reqId
 	a.err = json.Unmarshal(data, a)
 	return a
 }
 
-func (a *FetchSubprimersAction) Exec() (res *ClientResponse) {
-	s, err := archive.ListSubprimers(appDB, a.PageSize, (a.Page-1)*a.PageSize)
+func (a *FetchSourcesAction) Exec() (res *ClientResponse) {
+	s, err := archive.ListSources(appDB, a.PageSize, (a.Page-1)*a.PageSize)
 	if err != nil {
 		logger.Println(err.Error())
 		return &ClientResponse{
@@ -515,30 +524,32 @@ func (a *FetchSubprimersAction) Exec() (res *ClientResponse) {
 	return &ClientResponse{
 		Type:      a.SuccessType(),
 		RequestId: a.RequestId,
-		Schema:    "SUBPRIMER_ARRAY",
+		Schema:    "SOURCE_ARRAY",
 		Data:      s,
+		Page:      a.Page,
+		PageSize:  a.PageSize,
 	}
 }
 
-// FetchSubprimerAction grabs a page of subprimers for a given primer id
-type FetchSubprimerAction struct {
+// FetchSourceAction grabs a page of subprimers for a given primer id
+type FetchSourceAction struct {
 	ReqAction
 	Id string
 }
 
-func (FetchSubprimerAction) Type() string        { return "SUBPRIMER_FETCH_REQUEST" }
-func (FetchSubprimerAction) SuccessType() string { return "SUBPRIMER_FETCH_SUCCESS" }
-func (FetchSubprimerAction) FailureType() string { return "SUBPRIMER_FETCH_FAILURE" }
+func (FetchSourceAction) Type() string        { return "SOURCE_FETCH_REQUEST" }
+func (FetchSourceAction) SuccessType() string { return "SOURCE_FETCH_SUCCESS" }
+func (FetchSourceAction) FailureType() string { return "SOURCE_FETCH_FAILURE" }
 
-func (FetchSubprimerAction) Parse(reqId string, data json.RawMessage) ClientRequestAction {
-	a := &FetchSubprimerAction{}
+func (FetchSourceAction) Parse(reqId string, data json.RawMessage) ClientRequestAction {
+	a := &FetchSourceAction{}
 	a.RequestId = reqId
 	a.err = json.Unmarshal(data, a)
 	return a
 }
 
-func (a *FetchSubprimerAction) Exec() (res *ClientResponse) {
-	s := &archive.Subprimer{Id: a.Id}
+func (a *FetchSourceAction) Exec() (res *ClientResponse) {
+	s := &archive.Source{Id: a.Id}
 	if err := s.Read(appDB); err != nil {
 		logger.Println(err.Error())
 		return &ClientResponse{
@@ -564,32 +575,32 @@ func (a *FetchSubprimerAction) Exec() (res *ClientResponse) {
 	return &ClientResponse{
 		Type:      a.SuccessType(),
 		RequestId: a.RequestId,
-		Schema:    "SUBPRIMER",
+		Schema:    "SOURCE",
 		Data:      s,
 	}
 }
 
-// FetchSubprimerAction grabs a page of primers
-type FetchSubprimerUrlsAction struct {
+// FetchSourceAction grabs a page of primers
+type FetchSourceUrlsAction struct {
 	ReqAction
 	Id       string
 	Page     int
 	PageSize int
 }
 
-func (FetchSubprimerUrlsAction) Type() string        { return "SUBPRIMER_URLS_REQUEST" }
-func (FetchSubprimerUrlsAction) SuccessType() string { return "SUBPRIMER_URLS_SUCCESS" }
-func (FetchSubprimerUrlsAction) FailureType() string { return "SUBPRIMER_URLS_FAILURE" }
+func (FetchSourceUrlsAction) Type() string        { return "SOURCE_URLS_REQUEST" }
+func (FetchSourceUrlsAction) SuccessType() string { return "SOURCE_URLS_SUCCESS" }
+func (FetchSourceUrlsAction) FailureType() string { return "SOURCE_URLS_FAILURE" }
 
-func (FetchSubprimerUrlsAction) Parse(reqId string, data json.RawMessage) ClientRequestAction {
-	a := &FetchSubprimerUrlsAction{}
+func (FetchSourceUrlsAction) Parse(reqId string, data json.RawMessage) ClientRequestAction {
+	a := &FetchSourceUrlsAction{}
 	a.RequestId = reqId
 	a.err = json.Unmarshal(data, a)
 	return a
 }
 
-func (a *FetchSubprimerUrlsAction) Exec() (res *ClientResponse) {
-	s := &archive.Subprimer{Id: a.Id}
+func (a *FetchSourceUrlsAction) Exec() (res *ClientResponse) {
+	s := &archive.Source{Id: a.Id}
 	if err := s.Read(appDB); err != nil {
 		logger.Println(err.Error())
 		return &ClientResponse{
@@ -620,32 +631,32 @@ func (a *FetchSubprimerUrlsAction) Exec() (res *ClientResponse) {
 	}
 }
 
-type FetchSubprimerAttributedUrlsAction struct {
+type FetchSourceAttributedUrlsAction struct {
 	ReqAction
 	Id       string
 	Page     int
 	PageSize int
 }
 
-func (FetchSubprimerAttributedUrlsAction) Type() string {
-	return "SUBPRIMER_ATTRIBUTED_URLS_REQUEST"
+func (FetchSourceAttributedUrlsAction) Type() string {
+	return "SOURCE_ATTRIBUTED_URLS_REQUEST"
 }
-func (FetchSubprimerAttributedUrlsAction) SuccessType() string {
-	return "SUBPRIMER_ATTRIBUTED_URLS_SUCCESS"
+func (FetchSourceAttributedUrlsAction) SuccessType() string {
+	return "SOURCE_ATTRIBUTED_URLS_SUCCESS"
 }
-func (FetchSubprimerAttributedUrlsAction) FailureType() string {
-	return "SUBPRIMER_ATTRIBUTED_URLS_FAILURE"
+func (FetchSourceAttributedUrlsAction) FailureType() string {
+	return "SOURCE_ATTRIBUTED_URLS_FAILURE"
 }
 
-func (FetchSubprimerAttributedUrlsAction) Parse(reqId string, data json.RawMessage) ClientRequestAction {
-	a := &FetchSubprimerAttributedUrlsAction{}
+func (FetchSourceAttributedUrlsAction) Parse(reqId string, data json.RawMessage) ClientRequestAction {
+	a := &FetchSourceAttributedUrlsAction{}
 	a.RequestId = reqId
 	a.err = json.Unmarshal(data, a)
 	return a
 }
 
-func (a *FetchSubprimerAttributedUrlsAction) Exec() (res *ClientResponse) {
-	s := &archive.Subprimer{Id: a.Id}
+func (a *FetchSourceAttributedUrlsAction) Exec() (res *ClientResponse) {
+	s := &archive.Source{Id: a.Id}
 	if err := s.Read(appDB); err != nil {
 		logger.Println(err.Error())
 		return &ClientResponse{
