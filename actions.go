@@ -18,6 +18,7 @@ var ClientReqActions = []ClientAction{
 	SaveMetadataAction{},
 	FetchPrimersAction{},
 	FetchPrimerAction{},
+	FetchSubprimersAction{},
 	FetchSubprimerAction{},
 	FetchSubprimerUrlsAction{},
 	FetchSubprimerAttributedUrlsAction{},
@@ -482,7 +483,44 @@ func (a *FetchPrimerAction) Exec() (res *ClientResponse) {
 	}
 }
 
-// FetchSubprimerAction grabs a page of primers
+// FetchSubprimersAction grabs a page of primers
+type FetchSubprimersAction struct {
+	ReqAction
+	Page     int
+	PageSize int
+}
+
+func (FetchSubprimersAction) Type() string        { return "SUBPRIMERS_FETCH_REQUEST" }
+func (FetchSubprimersAction) SuccessType() string { return "SUBPRIMERS_FETCH_SUCCESS" }
+func (FetchSubprimersAction) FailureType() string { return "SUBPRIMERS_FETCH_FAILURE" }
+
+func (FetchSubprimersAction) Parse(reqId string, data json.RawMessage) ClientRequestAction {
+	a := &FetchSubprimersAction{}
+	a.RequestId = reqId
+	a.err = json.Unmarshal(data, a)
+	return a
+}
+
+func (a *FetchSubprimersAction) Exec() (res *ClientResponse) {
+	s, err := archive.ListSubprimers(appDB, a.PageSize, (a.Page-1)*a.PageSize)
+	if err != nil {
+		logger.Println(err.Error())
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
+
+	return &ClientResponse{
+		Type:      a.SuccessType(),
+		RequestId: a.RequestId,
+		Schema:    "SUBPRIMER_ARRAY",
+		Data:      s,
+	}
+}
+
+// FetchSubprimerAction grabs a page of subprimers for a given primer id
 type FetchSubprimerAction struct {
 	ReqAction
 	Id string
