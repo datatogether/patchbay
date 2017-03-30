@@ -130,6 +130,12 @@ func initConfig(mode string) (cfg *config, err error) {
 		"PUBLIC_KEY":      cfg.PublicKey,
 	})
 
+	if cfg.TemplateData != nil {
+		if cfg.TemplateData["ENV"] == nil {
+			cfg.TemplateData["ENV"] = mode
+		}
+	}
+
 	return
 }
 

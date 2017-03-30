@@ -373,6 +373,7 @@ func (SaveMetadataAction) Parse(reqId string, data json.RawMessage) ClientReques
 }
 
 func (a *SaveMetadataAction) Exec() (res *ClientResponse) {
+	logger.Println(a)
 	m, err := archive.NextMetadata(appDB, a.KeyId, a.Subject)
 	if err != nil {
 		logger.Println(err.Error())
@@ -393,6 +394,7 @@ func (a *SaveMetadataAction) Exec() (res *ClientResponse) {
 		}
 	}
 
+	logger.Println(m)
 	return &ClientResponse{
 		Type:      a.SuccessType(),
 		RequestId: a.RequestId,
