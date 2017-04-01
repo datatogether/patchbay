@@ -8,6 +8,12 @@ import (
 
 // ClientReqActions is a list of all actions a client may request
 var ClientReqActions = []ClientAction{
+	CreateUserAct{},
+	SaveUserAct{},
+	SessionLoginAct{},
+	SessionLogoutAct{},
+	SessionKeysAct{},
+	// UserReqAct{},
 	MsgReqAct{},
 	SearchReqAct{},
 	FetchUrlAct{},
