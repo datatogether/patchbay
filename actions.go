@@ -262,7 +262,7 @@ func (FetchRecentContentUrlsAction) Parse(reqId string, data json.RawMessage) Cl
 }
 
 func (a *FetchRecentContentUrlsAction) Exec() (res *ClientResponse) {
-	urls, err := archive.RecentContentUrls(appDB, a.Page, a.PageSize)
+	urls, err := archive.ContentUrls(appDB, a.Page, a.PageSize)
 	if err != nil {
 		return &ClientResponse{
 			Type:      a.FailureType(),
