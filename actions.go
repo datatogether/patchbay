@@ -567,6 +567,15 @@ func (a *FetchSourceAction) Exec() (res *ClientResponse) {
 		}
 	}
 
+	if err := s.Primer.Read(appDB); err != nil {
+		logger.Println(err.Error())
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
+
 	// TODO - hook this up to a cron-based que
 	go func() {
 		if err := s.CalcStats(appDB); err != nil {
@@ -577,7 +586,6 @@ func (a *FetchSourceAction) Exec() (res *ClientResponse) {
 			// 	Error:     err.Error(),
 			// }
 		}
-		logger.Println(s.Stats)
 	}()
 
 	return &ClientResponse{
