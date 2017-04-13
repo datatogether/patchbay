@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/qri-io/patchbay",
+	"ImportPath": "github.com/archivers-space/patchbay",
 	"GoVersion": "go1.8",
 	"GodepVersion": "v79",
 	"Deps": [
@@ -20,6 +20,14 @@
 		{
 			"ImportPath": "github.com/andybalholm/cascadia",
 			"Rev": "349dd0209470eabd9514242c688c403c0926d266"
+		},
+		{
+			"ImportPath": "github.com/archivers-space/archive",
+			"Rev": "36be7f27c58fc0375e2604430ceb43d0c8d8695b"
+		},
+		{
+			"ImportPath": "github.com/archivers-space/ffi",
+			"Rev": "676df2e2af343537b7dffbb6b47a2c00d2f51677"
 		},
 		{
 			"ImportPath": "github.com/aws/aws-sdk-go/aws",
@@ -190,14 +198,6 @@
 			"ImportPath": "github.com/pborman/uuid",
 			"Comment": "v1.0-21-g1b00554",
 			"Rev": "1b00554d822231195d1babd97ff4a781231955c9"
-		},
-		{
-			"ImportPath": "github.com/qri-io/archive",
-			"Rev": "51b99b3cce881aca6f42c00d63d45e1635ddc17b"
-		},
-		{
-			"ImportPath": "github.com/qri-io/ffi",
-			"Rev": "a3cb4cbdeec1d71910825079ec538ca4434eb524"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/acme",

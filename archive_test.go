@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/qri-io/archive"
+	"github.com/archivers-space/archive"
 	"testing"
 	"time"
 )

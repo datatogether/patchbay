@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/qri-io/archive"
+	"github.com/archivers-space/archive"
 )
 
 // ClientReqActions is a list of all actions a client may request
@@ -262,7 +262,7 @@ func (FetchRecentContentUrlsAction) Parse(reqId string, data json.RawMessage) Cl
 }
 
 func (a *FetchRecentContentUrlsAction) Exec() (res *ClientResponse) {
-	urls, err := archive.ContentUrls(appDB, a.Page, a.PageSize)
+	urls, err := archive.ContentUrls(appDB, a.PageSize, a.PageSize*(a.Page-1))
 	if err != nil {
 		return &ClientResponse{
 			Type:      a.FailureType(),
@@ -412,6 +412,7 @@ func (a *SaveMetadataAction) Exec() (res *ClientResponse) {
 // FetchPrimersAction grabs a page of primers
 type FetchPrimersAction struct {
 	ReqAction
+	BaseOnly bool
 	Page     int
 	PageSize int
 }
@@ -428,7 +429,15 @@ func (FetchPrimersAction) Parse(reqId string, data json.RawMessage) ClientReques
 }
 
 func (a *FetchPrimersAction) Exec() (res *ClientResponse) {
-	primers, err := archive.ListPrimers(appDB, 50, 0)
+	var (
+		primers []*archive.Primer
+		err     error
+	)
+	if a.BaseOnly {
+		primers, err = archive.BasePrimers(appDB, 50, 0)
+	} else {
+		primers, err = archive.ListPrimers(appDB, 50, 0)
+	}
 	if err != nil {
 		logger.Println(err.Error())
 		return &ClientResponse{
@@ -437,7 +446,6 @@ func (a *FetchPrimersAction) Exec() (res *ClientResponse) {
 			Error:     err.Error(),
 		}
 	}
-
 	return &ClientResponse{
 		Type:      a.SuccessType(),
 		RequestId: a.RequestId,
