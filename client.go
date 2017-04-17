@@ -22,6 +22,9 @@ const (
 	// Send pings to peer with this period. Must be less than pongWait.
 	pingPeriod = (pongWait * 9) / 10
 	// Maximum message size allowed from peer.
+	// Careful with this one, if messages exceed this size it seems the default
+	// behaviour is to close the connection.
+	// TODO - properly handle messages that are too large client side
 	maxMessageSize = 2048
 )
 
