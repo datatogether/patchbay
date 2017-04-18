@@ -3,18 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io"
 	"net/http"
-	"text/template"
 )
 
 // templates is a collection of views for rendering with the renderTemplate function
 // see homeHandler for an example
-var templates = template.Must(template.ParseFiles(
-	"views/webapp.html",
-	"views/accessDenied.html",
-	"views/notFound.html",
-))
+var templates *template.Template
 
 func ArchiveUrlHandler(w http.ResponseWriter, r *http.Request) {
 	done := func(err error) {}
