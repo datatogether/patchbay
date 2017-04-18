@@ -57,3 +57,4 @@ jobs:
             docker build -t archivers/patchbay:latest -t archivers/patchbay:$TAG .
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker push archivers/patchbay:$TAG
+            docker push archivers/patchbay:latest
