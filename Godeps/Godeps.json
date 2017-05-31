@@ -23,11 +23,15 @@
 		},
 		{
 			"ImportPath": "github.com/archivers-space/archive",
-			"Rev": "36be7f27c58fc0375e2604430ceb43d0c8d8695b"
+			"Rev": "2cb65f3253a5559644725a268c1efbf40396b20b"
+		},
+		{
+			"ImportPath": "github.com/archivers-space/config",
+			"Rev": "eba5c3af9362873cc43c38480ab443c9518c8c06"
 		},
 		{
 			"ImportPath": "github.com/archivers-space/ffi",
-			"Rev": "676df2e2af343537b7dffbb6b47a2c00d2f51677"
+			"Rev": "99f376acf0864754b9810704ae2b41670e17bbba"
 		},
 		{
 			"ImportPath": "github.com/aws/aws-sdk-go/aws",
@@ -180,6 +184,11 @@
 			"Rev": "bd40a432e4c76585ef6b72d3fd96fb9b6dc7b68d"
 		},
 		{
+			"ImportPath": "github.com/joho/godotenv",
+			"Comment": "v1.1",
+			"Rev": "726cc8b906e3d31c70a9671c90a13716a8d3f50d"
+		},
+		{
 			"ImportPath": "github.com/lib/pq",
 			"Comment": "go1.0-cutoff-151-gba5d4f7",
 			"Rev": "ba5d4f7a35561e22fbdf7a39aa0070f4d460cfc0"
@@ -198,6 +207,11 @@
 			"ImportPath": "github.com/pborman/uuid",
 			"Comment": "v1.0-21-g1b00554",
 			"Rev": "1b00554d822231195d1babd97ff4a781231955c9"
+		},
+		{
+			"ImportPath": "github.com/sirupsen/logrus",
+			"Comment": "v0.11.5-12-g10f801e",
+			"Rev": "10f801ebc38b33738c9d17d50860f484a0988ff5"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/acme",
@@ -238,6 +252,10 @@
 		{
 			"ImportPath": "golang.org/x/net/idna",
 			"Rev": "b4690f45fa1cafc47b1c280c2e75116efe40cc13"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/unix",
+			"Rev": "e24f485414aeafb646f6fca458b0bf869c0880a1"
 		},
 		{
 			"ImportPath": "golang.org/x/text/transform",

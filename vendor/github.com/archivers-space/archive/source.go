@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/pborman/uuid"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -43,6 +44,7 @@ type Source struct {
 
 type SourceStats struct {
 	UrlCount             int `json:"urlCount"`
+	ArchivedUrlCount     int `json:"archivedUrlCount"`
 	ContentUrlCount      int `json:"contentUrlCount"`
 	ContentMetadataCount int `json:"contentMetadataCount"`
 }
@@ -86,6 +88,15 @@ func (s *Source) contentUrlCount(db sqlQueryable) (count int, err error) {
 func (s *Source) contentWithMetadataCount(db sqlQueryable) (count int, err error) {
 	err = db.QueryRow(qSourceContentWithMetadataCount, "%"+s.Url+"%").Scan(&count)
 	return
+}
+
+// MatchesUrl checks to see if the url pattern of Source is contained
+// within the passed-in url string
+// TODO - make this more sophisticated, checking against the beginning of the
+// url to avoid things like accidental matches, or urls in query params matching
+// within rawurl
+func (s *Source) MatchesUrl(rawurl string) bool {
+	return strings.Contains(rawurl, s.Url)
 }
 
 // AsUrl retrieves the url that corresponds for the crawlUrl. If one doesn't exist & the url is saved,
@@ -160,13 +171,13 @@ func (s *Source) DescribedContent(db sqlQueryable, limit, offset int) ([]*Url, e
 // func (s *Source) Stats() {
 // }
 
-func (c *Source) Read(db sqlQueryable) error {
-	if c.Id != "" {
-		row := db.QueryRow(qSourceById, c.Id)
-		return c.UnmarshalSQL(row)
-	} else if c.Url != "" {
-		row := db.QueryRow(qSourceByUrl, c.Url)
-		return c.UnmarshalSQL(row)
+func (s *Source) Read(db sqlQueryable) error {
+	if s.Id != "" {
+		row := db.QueryRow(qSourceById, s.Id)
+		return s.UnmarshalSQL(row)
+	} else if s.Url != "" {
+		row := db.QueryRow(qSourceByUrl, s.Url)
+		return s.UnmarshalSQL(row)
 	}
 	return ErrNotFound
 }

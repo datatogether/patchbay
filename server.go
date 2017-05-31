@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/gchaincl/dotsql"
-	"log"
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"os"
 )
@@ -14,7 +14,8 @@ var (
 	// the config.json file and enviornment variables, see config.go for more info.
 	cfg *config
 	// log output
-	logger = log.New(os.Stderr, "", log.Ldate|log.Ltime|log.Lshortfile)
+	log = logrus.New()
+
 	// application database connection
 	appDB *sql.DB
 
@@ -22,6 +23,14 @@ var (
 
 	room *Room
 )
+
+func init() {
+	log.Out = os.Stdout
+	log.Level = logrus.InfoLevel
+	log.Formatter = &logrus.TextFormatter{
+		ForceColors: true,
+	}
+}
 
 func main() {
 	var err error
@@ -37,6 +46,23 @@ func main() {
 	go room.run()
 
 	s := &http.Server{}
+	// connect mux to server
+	s.Handler = NewServerRoutes()
+
+	// print notable config settings
+	printConfigInfo()
+
+	// fire it up!
+	fmt.Println("starting server on port", cfg.Port)
+
+	// start server wrapped in a log.Fatal b/c http.ListenAndServe will not
+	// return unless there's an error
+	log.Fatal(StartServer(cfg, s))
+}
+
+// NewServerRoutes returns a Muxer that has all API routes.
+// This makes for easy testing using httptest
+func NewServerRoutes() *http.ServeMux {
 	m := http.NewServeMux()
 	m.HandleFunc("/.well-known/acme-challenge/", CertbotHandler)
 
@@ -57,16 +83,5 @@ func main() {
 
 	m.Handle("/ws", middleware(HandleWebsocketUpgrade))
 
-	// connect mux to server
-	s.Handler = m
-
-	// print notable config settings
-	printConfigInfo()
-
-	// fire it up!
-	fmt.Println("starting server on port", cfg.Port)
-
-	// start server wrapped in a log.Fatal b/c http.ListenAndServe will not
-	// return unless there's an error
-	logger.Fatal(StartServer(cfg, s))
+	return m
 }

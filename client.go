@@ -6,7 +6,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -64,7 +63,7 @@ func (c *Client) readPump() {
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
-				log.Printf("error: %v", err)
+				log.Infof("error: %v", err)
 			}
 			break
 		}
@@ -160,12 +159,12 @@ func (c *Client) SendResponse(res *ClientResponse) {
 	if err != nil {
 		// TODO - handle "internal server parsing error" here
 		// sending a response
-		logger.Println(err.Error())
+		log.Info(err.Error())
 		return
 	}
 	c.send <- data
 	// if err := c.conn.WriteJSON(res); err != nil {
-	// 	logger.Println(err.Error())
+	// 	log.Info(err.Error())
 	// }
 }
 
@@ -182,7 +181,7 @@ func (c *Client) HandleRequestAction(req string, reqId string, data json.RawMess
 func serveWs(hub *Room, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		logger.Println(err)
+		log.Info(err)
 		return
 	}
 	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256)}

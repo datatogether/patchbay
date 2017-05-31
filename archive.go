@@ -22,7 +22,7 @@ func ValidArchivingUrl(db sqlQueryable, url string) error {
 
 func (c *Client) ArchiveUrl(db sqlQueryExecable, reqId, url string) {
 	if err := ValidArchivingUrl(db, url); err != nil {
-		logger.Println(err.Error())
+		log.Info(err.Error())
 		c.SendResponse(&ClientResponse{
 			Type:      "URL_ARCHIVE_ERROR",
 			RequestId: reqId,
@@ -34,7 +34,7 @@ func (c *Client) ArchiveUrl(db sqlQueryExecable, reqId, url string) {
 	// TODO - plumb userId into this
 	_, err := db.Exec("insert into archive_requests (created,url,user_id) values ($1, $2, $3)", time.Now().Round(time.Second).In(time.UTC), url, "")
 	if err != nil {
-		logger.Println(err.Error())
+		log.Info(err.Error())
 		c.SendResponse(&ClientResponse{
 			Type:      "URL_ARCHIVE_ERROR",
 			RequestId: reqId,
@@ -43,10 +43,10 @@ func (c *Client) ArchiveUrl(db sqlQueryExecable, reqId, url string) {
 		return
 	}
 
-	logger.Println("archiving %s", url)
+	log.Info("archiving %s", url)
 	u := &archive.Url{Url: url}
 	if _, err := u.ParsedUrl(); err != nil {
-		logger.Println(err.Error())
+		log.Info(err.Error())
 		c.SendResponse(&ClientResponse{
 			Type:      "URL_ARCHIVE_ERROR",
 			RequestId: reqId,
@@ -58,7 +58,7 @@ func (c *Client) ArchiveUrl(db sqlQueryExecable, reqId, url string) {
 	if err := u.Read(db); err != nil {
 		if err == archive.ErrNotFound {
 			if err := u.Insert(db); err != nil {
-				logger.Println(err.Error())
+				log.Info(err.Error())
 				c.SendResponse(&ClientResponse{
 					Type:      "URL_ARCHIVE_ERROR",
 					RequestId: reqId,
@@ -67,7 +67,7 @@ func (c *Client) ArchiveUrl(db sqlQueryExecable, reqId, url string) {
 				return
 			}
 		} else {
-			logger.Println(err.Error())
+			log.Info(err.Error())
 			c.SendResponse(&ClientResponse{
 				Type:      "URL_ARCHIVE_ERROR",
 				RequestId: reqId,
@@ -88,7 +88,7 @@ func (c *Client) ArchiveUrl(db sqlQueryExecable, reqId, url string) {
 	// Perform base GET request
 	links, err := u.Get(db, func(err error) {
 		if err != nil {
-			logger.Println(err.Error())
+			log.Info(err.Error())
 			c.SendResponse(&ClientResponse{
 				Type:      "URL_ARCHIVE_ERROR",
 				RequestId: reqId,
@@ -98,7 +98,7 @@ func (c *Client) ArchiveUrl(db sqlQueryExecable, reqId, url string) {
 		}
 	})
 	if err != nil {
-		logger.Println(err.Error())
+		log.Info(err.Error())
 		c.SendResponse(&ClientResponse{
 			Type:      "URL_ARCHIVE_ERROR",
 			RequestId: reqId,
@@ -153,7 +153,7 @@ func (c *Client) ArchiveUrl(db sqlQueryExecable, reqId, url string) {
 				})
 				// taskDone(err)
 			}); err != nil {
-				logger.Println(err.Error())
+				log.Info(err.Error())
 				c.SendResponse(&ClientResponse{
 					Type:      "URL_SET_ERROR",
 					RequestId: "server",
@@ -208,7 +208,7 @@ func ArchiveUrl(db sqlQueryExecable, url string, done func(err error)) (*archive
 		// GET each destination link from this page in parallel
 		for _, l := range links {
 			if _, err := l.Dst.Get(db, taskDone); err != nil {
-				logger.Println(err.Error())
+				log.Info(err.Error())
 			}
 
 			// need a sleep here to avoid bombing server with requests

@@ -2,25 +2,8 @@ package archive
 
 import (
 	"database/sql"
+	"fmt"
 )
-
-func CrawlingUrls(db sqlQueryable) ([]*Source, error) {
-	rows, err := db.Query(qSourceCrawlingUrls)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	urls := make([]*Source, 0)
-	for rows.Next() {
-		c := &Source{}
-		if err := c.UnmarshalSQL(rows); err != nil {
-			return nil, err
-		}
-		urls = append(urls, c)
-	}
-	return urls, nil
-}
 
 func ContentUrls(db sqlQueryable, limit, skip int) ([]*Url, error) {
 	rows, err := db.Query(qContentUrlsList, limit, skip)
@@ -28,6 +11,11 @@ func ContentUrls(db sqlQueryable, limit, skip int) ([]*Url, error) {
 		return nil, err
 	}
 	return UnmarshalBoundedUrls(rows, limit)
+}
+
+func ContentUrlsCount(db sqlQueryable) (count int, err error) {
+	err = db.QueryRow(qContentUrlsCount).Scan(&count)
+	return
 }
 
 func ListUrls(db sqlQueryable, limit, skip int) ([]*Url, error) {
@@ -87,6 +75,18 @@ func UrlsForHash(db sqlQueryable, hash string) ([]*Url, error) {
 		return nil, err
 	}
 	return UnmarshalUrls(rows)
+}
+
+func ValidArchivingUrl(db sqlQueryable, url string) error {
+	var exists bool
+	err := db.QueryRow("select exists(select 1 from subprimers where $1 ilike concat('%', url ,'%'))", url).Scan(&exists)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return fmt.Errorf("Oops! Only urls contained in subprimers can be archived. cannot archive %s", url)
+	}
+	return nil
 }
 
 func UnmarshalBoundedUrls(rows *sql.Rows, limit int) ([]*Url, error) {

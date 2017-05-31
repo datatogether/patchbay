@@ -37,18 +37,25 @@ func WebappHandler(w http.ResponseWriter, r *http.Request) {
 	renderTemplate(w, "webapp.html")
 }
 
+func CertbotHandler(w http.ResponseWriter, r *http.Request) {
+	io.WriteString(w, cfg.CertbotResponse)
+}
+
 func HandleWebsocketUpgrade(w http.ResponseWriter, r *http.Request) {
 	serveWs(room, w, r)
 }
 
 // renderTemplate renders a template with the values of cfg.TemplateData
 func renderTemplate(w http.ResponseWriter, tmpl string) {
-	err := templates.ExecuteTemplate(w, tmpl, cfg.TemplateData)
+	log.Infof("%#v", cfg)
+	err := templates.ExecuteTemplate(w, tmpl, map[string]interface{}{
+		"ENV":             cfg.Mode,
+		"title":           cfg.Title,
+		"segmentApiToken": cfg.SegmentApiToken,
+		"webappScripts":   cfg.WebappScripts,
+	})
 	if err != nil {
+		log.Info(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-}
-
-func CertbotHandler(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, cfg.CertbotResponse)
 }

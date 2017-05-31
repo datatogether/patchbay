@@ -226,7 +226,7 @@ func (FetchOutboundLinksAct) Parse(reqId string, data json.RawMessage) ClientReq
 func (a *FetchOutboundLinksAct) Exec() (res *ClientResponse) {
 	links, err := archive.ReadDstLinks(appDB, &archive.Url{Url: a.Url})
 	if err != nil {
-		logger.Println(err.Error())
+		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
 			RequestId: a.RequestId,
@@ -343,7 +343,7 @@ func (a *FetchMetadataAction) Exec() (res *ClientResponse) {
 			}
 		}
 
-		logger.Println(err.Error())
+		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
 			RequestId: a.RequestId,
@@ -379,10 +379,10 @@ func (SaveMetadataAction) Parse(reqId string, data json.RawMessage) ClientReques
 }
 
 func (a *SaveMetadataAction) Exec() (res *ClientResponse) {
-	logger.Println(a)
+	log.Info(a)
 	m, err := archive.NextMetadata(appDB, a.KeyId, a.Subject)
 	if err != nil {
-		logger.Println(err.Error())
+		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
 			RequestId: a.RequestId,
@@ -392,7 +392,7 @@ func (a *SaveMetadataAction) Exec() (res *ClientResponse) {
 
 	m.Meta = a.Meta
 	if err := m.Write(appDB); err != nil {
-		logger.Println(err.Error())
+		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
 			RequestId: a.RequestId,
@@ -400,7 +400,7 @@ func (a *SaveMetadataAction) Exec() (res *ClientResponse) {
 		}
 	}
 
-	logger.Println(m)
+	log.Info(m)
 	return &ClientResponse{
 		Type:      a.SuccessType(),
 		RequestId: a.RequestId,
@@ -439,7 +439,7 @@ func (a *FetchPrimersAction) Exec() (res *ClientResponse) {
 		primers, err = archive.ListPrimers(appDB, 50, 0)
 	}
 	if err != nil {
-		logger.Println(err.Error())
+		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
 			RequestId: a.RequestId,
@@ -474,7 +474,7 @@ func (FetchPrimerAction) Parse(reqId string, data json.RawMessage) ClientRequest
 func (a *FetchPrimerAction) Exec() (res *ClientResponse) {
 	p := &archive.Primer{Id: a.Id}
 	if err := p.Read(appDB); err != nil {
-		logger.Println(err.Error())
+		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
 			RequestId: a.RequestId,
@@ -483,7 +483,7 @@ func (a *FetchPrimerAction) Exec() (res *ClientResponse) {
 	}
 
 	if err := p.ReadSubPrimers(appDB); err != nil {
-		logger.Println(err.Error())
+		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
 			RequestId: a.RequestId,
@@ -492,7 +492,7 @@ func (a *FetchPrimerAction) Exec() (res *ClientResponse) {
 	}
 
 	if err := p.ReadSources(appDB); err != nil {
-		logger.Println(err.Error())
+		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
 			RequestId: a.RequestId,
@@ -529,7 +529,7 @@ func (FetchSourcesAction) Parse(reqId string, data json.RawMessage) ClientReques
 func (a *FetchSourcesAction) Exec() (res *ClientResponse) {
 	s, err := archive.ListSources(appDB, a.PageSize, (a.Page-1)*a.PageSize)
 	if err != nil {
-		logger.Println(err.Error())
+		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
 			RequestId: a.RequestId,
@@ -567,7 +567,7 @@ func (FetchSourceAction) Parse(reqId string, data json.RawMessage) ClientRequest
 func (a *FetchSourceAction) Exec() (res *ClientResponse) {
 	s := &archive.Source{Id: a.Id}
 	if err := s.Read(appDB); err != nil {
-		logger.Println(err.Error())
+		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
 			RequestId: a.RequestId,
@@ -576,7 +576,7 @@ func (a *FetchSourceAction) Exec() (res *ClientResponse) {
 	}
 
 	if err := s.Primer.Read(appDB); err != nil {
-		logger.Println(err.Error())
+		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
 			RequestId: a.RequestId,
@@ -587,7 +587,7 @@ func (a *FetchSourceAction) Exec() (res *ClientResponse) {
 	// TODO - hook this up to a cron-based que
 	go func() {
 		if err := s.CalcStats(appDB); err != nil {
-			logger.Println(err.Error())
+			log.Info(err.Error())
 			// return &ClientResponse{
 			// 	Type:      a.FailureType(),
 			// 	RequestId: a.RequestId,
@@ -626,7 +626,7 @@ func (FetchSourceUrlsAction) Parse(reqId string, data json.RawMessage) ClientReq
 func (a *FetchSourceUrlsAction) Exec() (res *ClientResponse) {
 	s := &archive.Source{Id: a.Id}
 	if err := s.Read(appDB); err != nil {
-		logger.Println(err.Error())
+		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
 			RequestId: a.RequestId,
@@ -636,7 +636,7 @@ func (a *FetchSourceUrlsAction) Exec() (res *ClientResponse) {
 
 	urls, err := s.UndescribedContent(appDB, 100, 0)
 	if err != nil {
-		logger.Println(err.Error())
+		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
 			RequestId: a.RequestId,
@@ -682,7 +682,7 @@ func (FetchSourceAttributedUrlsAction) Parse(reqId string, data json.RawMessage)
 func (a *FetchSourceAttributedUrlsAction) Exec() (res *ClientResponse) {
 	s := &archive.Source{Id: a.Id}
 	if err := s.Read(appDB); err != nil {
-		logger.Println(err.Error())
+		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
 			RequestId: a.RequestId,
@@ -692,7 +692,7 @@ func (a *FetchSourceAttributedUrlsAction) Exec() (res *ClientResponse) {
 
 	urls, err := s.DescribedContent(appDB, 100, 0)
 	if err != nil {
-		logger.Println(err.Error())
+		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
 			RequestId: a.RequestId,
@@ -731,7 +731,7 @@ func (FetchConsensusAction) Parse(reqId string, data json.RawMessage) ClientRequ
 func (a *FetchConsensusAction) Exec() (res *ClientResponse) {
 	blocks, err := archive.MetadataBySubject(appDB, a.Subject)
 	if err != nil {
-		logger.Println(err.Error())
+		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
 			RequestId: a.RequestId,
@@ -741,7 +741,7 @@ func (a *FetchConsensusAction) Exec() (res *ClientResponse) {
 
 	c, values, err := archive.SumConsensus(a.Subject, blocks)
 	if err != nil {
-		logger.Println(err.Error())
+		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
 			RequestId: a.RequestId,
@@ -751,7 +751,7 @@ func (a *FetchConsensusAction) Exec() (res *ClientResponse) {
 
 	md, err := c.Metadata(values)
 	if err != nil {
-		logger.Println(err.Error())
+		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
 			RequestId: a.RequestId,
@@ -791,7 +791,7 @@ func (FetchCollectionsAction) Parse(reqId string, data json.RawMessage) ClientRe
 func (a *FetchCollectionsAction) Exec() (res *ClientResponse) {
 	collections, err := archive.ListCollections(appDB, 50, 0)
 	if err != nil {
-		logger.Println(err.Error())
+		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
 			RequestId: a.RequestId,
@@ -827,7 +827,7 @@ func (FetchCollectionAction) Parse(reqId string, data json.RawMessage) ClientReq
 func (a *FetchCollectionAction) Exec() (res *ClientResponse) {
 	c := &archive.Collection{Id: a.Id}
 	if err := c.Read(appDB); err != nil {
-		logger.Println(err.Error())
+		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
 			RequestId: a.RequestId,
@@ -862,7 +862,7 @@ func (SaveCollectionAction) Parse(reqId string, data json.RawMessage) ClientRequ
 
 func (a *SaveCollectionAction) Exec() (res *ClientResponse) {
 	if err := a.Collection.Save(appDB); err != nil {
-		logger.Println(err.Error())
+		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
 			RequestId: a.RequestId,
@@ -897,7 +897,7 @@ func (DeleteCollectionAction) Parse(reqId string, data json.RawMessage) ClientRe
 
 func (a *DeleteCollectionAction) Exec() (res *ClientResponse) {
 	if err := a.Collection.Delete(appDB); err != nil {
-		logger.Println(err.Error())
+		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
 			RequestId: a.RequestId,
@@ -935,7 +935,7 @@ func (MetadataByKeyRequest) Parse(reqId string, data json.RawMessage) ClientRequ
 func (a *MetadataByKeyRequest) Exec() (res *ClientResponse) {
 	results, err := archive.MetadataByKey(appDB, a.Key, a.PageSize, (a.Page-1)*a.PageSize)
 	if err != nil {
-		logger.Println(err.Error())
+		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
 			RequestId: a.RequestId,
