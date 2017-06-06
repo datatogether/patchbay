@@ -17,13 +17,15 @@ func StartServer(c *config, s *http.Server) error {
 		return s.ListenAndServe()
 	}
 
+	log.Infoln("using https server for url root", c.UrlRoot)
+
 	certCache := "/tmp/certs"
 	key, cert := "", ""
 
 	// LetsEncrypt is good. Thanks LetsEncrypt.
 	certManager := autocert.Manager{
 		Prompt:     autocert.AcceptTOS,
-		HostPolicy: autocert.HostWhitelist(cfg.UrlRoot),
+		HostPolicy: autocert.HostWhitelist(c.UrlRoot),
 		Cache:      autocert.DirCache(certCache),
 	}
 

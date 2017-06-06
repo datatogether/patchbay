@@ -23,7 +23,7 @@
 		},
 		{
 			"ImportPath": "github.com/archivers-space/archive",
-			"Rev": "2cb65f3253a5559644725a268c1efbf40396b20b"
+			"Rev": "2d8c8d7efcf2a9fa11c51a5d3cfc7aa657ee247c"
 		},
 		{
 			"ImportPath": "github.com/archivers-space/config",
@@ -32,6 +32,10 @@
 		{
 			"ImportPath": "github.com/archivers-space/ffi",
 			"Rev": "99f376acf0864754b9810704ae2b41670e17bbba"
+		},
+		{
+			"ImportPath": "github.com/archivers-space/sqlutil",
+			"Rev": "d77bd75a69b01ddf20310b36d465ad35e19e7c03"
 		},
 		{
 			"ImportPath": "github.com/aws/aws-sdk-go/aws",
