@@ -47,7 +47,6 @@ func HandleWebsocketUpgrade(w http.ResponseWriter, r *http.Request) {
 
 // renderTemplate renders a template with the values of cfg.TemplateData
 func renderTemplate(w http.ResponseWriter, tmpl string) {
-	log.Infof("%#v", cfg)
 	err := templates.ExecuteTemplate(w, tmpl, map[string]interface{}{
 		"ENV":             cfg.Mode,
 		"title":           cfg.Title,
