@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/archivers-space/archive"
+	"github.com/datatogether/archive"
 )
 
 // ClientReqActions is a list of all actions a client may request
@@ -158,7 +158,7 @@ func (FetchUrlAct) Parse(reqId string, data json.RawMessage) ClientRequestAction
 
 func (a *FetchUrlAct) Exec() (res *ClientResponse) {
 	u := &archive.Url{Url: a.Url}
-	if err := u.Read(appDB); err != nil {
+	if err := u.Read(store); err != nil {
 		return &ClientResponse{
 			Type:      a.FailureType(),
 			RequestId: a.RequestId,
@@ -436,7 +436,7 @@ func (a *FetchPrimersAction) Exec() (res *ClientResponse) {
 	if a.BaseOnly {
 		primers, err = archive.BasePrimers(appDB, 50, 0)
 	} else {
-		primers, err = archive.ListPrimers(appDB, 50, 0)
+		primers, err = archive.ListPrimers(store, 50, 0)
 	}
 	if err != nil {
 		log.Info(err.Error())
@@ -473,7 +473,7 @@ func (FetchPrimerAction) Parse(reqId string, data json.RawMessage) ClientRequest
 
 func (a *FetchPrimerAction) Exec() (res *ClientResponse) {
 	p := &archive.Primer{Id: a.Id}
-	if err := p.Read(appDB); err != nil {
+	if err := p.Read(store); err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
@@ -527,7 +527,7 @@ func (FetchSourcesAction) Parse(reqId string, data json.RawMessage) ClientReques
 }
 
 func (a *FetchSourcesAction) Exec() (res *ClientResponse) {
-	s, err := archive.ListSources(appDB, a.PageSize, (a.Page-1)*a.PageSize)
+	s, err := archive.ListSources(store, a.PageSize, (a.Page-1)*a.PageSize)
 	if err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
@@ -566,7 +566,7 @@ func (FetchSourceAction) Parse(reqId string, data json.RawMessage) ClientRequest
 
 func (a *FetchSourceAction) Exec() (res *ClientResponse) {
 	s := &archive.Source{Id: a.Id}
-	if err := s.Read(appDB); err != nil {
+	if err := s.Read(store); err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
@@ -575,7 +575,7 @@ func (a *FetchSourceAction) Exec() (res *ClientResponse) {
 		}
 	}
 
-	if err := s.Primer.Read(appDB); err != nil {
+	if err := s.Primer.Read(store); err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
@@ -625,7 +625,7 @@ func (FetchSourceUrlsAction) Parse(reqId string, data json.RawMessage) ClientReq
 
 func (a *FetchSourceUrlsAction) Exec() (res *ClientResponse) {
 	s := &archive.Source{Id: a.Id}
-	if err := s.Read(appDB); err != nil {
+	if err := s.Read(store); err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
@@ -681,7 +681,7 @@ func (FetchSourceAttributedUrlsAction) Parse(reqId string, data json.RawMessage)
 
 func (a *FetchSourceAttributedUrlsAction) Exec() (res *ClientResponse) {
 	s := &archive.Source{Id: a.Id}
-	if err := s.Read(appDB); err != nil {
+	if err := s.Read(store); err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
@@ -789,7 +789,7 @@ func (FetchCollectionsAction) Parse(reqId string, data json.RawMessage) ClientRe
 }
 
 func (a *FetchCollectionsAction) Exec() (res *ClientResponse) {
-	collections, err := archive.ListCollections(appDB, 50, 0)
+	collections, err := archive.ListCollections(store, 50, 0)
 	if err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
@@ -826,7 +826,7 @@ func (FetchCollectionAction) Parse(reqId string, data json.RawMessage) ClientReq
 
 func (a *FetchCollectionAction) Exec() (res *ClientResponse) {
 	c := &archive.Collection{Id: a.Id}
-	if err := c.Read(appDB); err != nil {
+	if err := c.Read(store); err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
@@ -861,7 +861,7 @@ func (SaveCollectionAction) Parse(reqId string, data json.RawMessage) ClientRequ
 }
 
 func (a *SaveCollectionAction) Exec() (res *ClientResponse) {
-	if err := a.Collection.Save(appDB); err != nil {
+	if err := a.Collection.Save(store); err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
@@ -896,7 +896,7 @@ func (DeleteCollectionAction) Parse(reqId string, data json.RawMessage) ClientRe
 }
 
 func (a *DeleteCollectionAction) Exec() (res *ClientResponse) {
-	if err := a.Collection.Delete(appDB); err != nil {
+	if err := a.Collection.Delete(store); err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),

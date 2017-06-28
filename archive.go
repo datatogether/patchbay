@@ -1,14 +1,15 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
-	"github.com/archivers-space/archive"
+	"github.com/datatogether/archive"
 	"time"
 )
 
 // ValidArchivingUrl checks to see if this url pattern-matches the list of subprimers
 // TODO - there are many ways to spoof this, replace with actual URL matching.
-func ValidArchivingUrl(db sqlQueryable, url string) error {
+func ValidArchivingUrl(db *sql.DB, url string) error {
 	var exists bool
 	err := db.QueryRow("select exists(select 1 from subprimers where $1 ilike concat('%', url ,'%'))", url).Scan(&exists)
 	if err != nil {
@@ -20,7 +21,7 @@ func ValidArchivingUrl(db sqlQueryable, url string) error {
 	return nil
 }
 
-func (c *Client) ArchiveUrl(db sqlQueryExecable, reqId, url string) {
+func (c *Client) ArchiveUrl(db *sql.DB, reqId, url string) {
 	if err := ValidArchivingUrl(db, url); err != nil {
 		log.Info(err.Error())
 		c.SendResponse(&ClientResponse{
@@ -55,9 +56,9 @@ func (c *Client) ArchiveUrl(db sqlQueryExecable, reqId, url string) {
 		return
 	}
 
-	if err := u.Read(db); err != nil {
+	if err := u.Read(store); err != nil {
 		if err == archive.ErrNotFound {
-			if err := u.Insert(db); err != nil {
+			if err := u.Insert(store); err != nil {
 				log.Info(err.Error())
 				c.SendResponse(&ClientResponse{
 					Type:      "URL_ARCHIVE_ERROR",
@@ -86,7 +87,7 @@ func (c *Client) ArchiveUrl(db sqlQueryExecable, reqId, url string) {
 	})
 
 	// Perform base GET request
-	links, err := u.Get(db, func(err error) {
+	links, err := u.Get(appDB, func(err error) {
 		if err != nil {
 			log.Info(err.Error())
 			c.SendResponse(&ClientResponse{
@@ -115,7 +116,7 @@ func (c *Client) ArchiveUrl(db sqlQueryExecable, reqId, url string) {
 		Data:      links,
 	})
 
-	go func(db sqlQueryExecable, links []*archive.Link) {
+	go func(db *sql.DB, links []*archive.Link) {
 		// GET each destination link from this page in parallel
 		for _, l := range links {
 			// need a sleep here to avoid bombing server with requests
@@ -168,16 +169,16 @@ func (c *Client) ArchiveUrl(db sqlQueryExecable, reqId, url string) {
 }
 
 // ArchiveUrl GET's a url and if it's an HTML page, any links it directly references
-func ArchiveUrl(db sqlQueryExecable, url string, done func(err error)) (*archive.Url, []*archive.Link, error) {
+func ArchiveUrl(db *sql.DB, url string, done func(err error)) (*archive.Url, []*archive.Link, error) {
 	u := &archive.Url{Url: url}
 	if _, err := u.ParsedUrl(); err != nil {
 		done(err)
 		return nil, nil, err
 	}
 
-	if err := u.Read(db); err != nil {
+	if err := u.Read(store); err != nil {
 		if err == archive.ErrNotFound {
-			if err := u.Insert(db); err != nil {
+			if err := u.Insert(store); err != nil {
 				done(err)
 				return nil, nil, err
 			}
@@ -204,7 +205,7 @@ func ArchiveUrl(db sqlQueryExecable, url string, done func(err error)) (*archive
 		errs <- err
 	}
 
-	go func(db sqlQueryExecable, links []*archive.Link) {
+	go func(db *sql.DB, links []*archive.Link) {
 		// GET each destination link from this page in parallel
 		for _, l := range links {
 			if _, err := l.Dst.Get(db, taskDone); err != nil {
@@ -231,7 +232,7 @@ func ArchiveUrl(db sqlQueryExecable, url string, done func(err error)) (*archive
 	return u, links, err
 }
 
-func ArchiveUrlSync(db sqlQueryExecable, url string) (*archive.Url, error) {
+func ArchiveUrlSync(db *sql.DB, url string) (*archive.Url, error) {
 	done := make(chan error)
 	u, _, err := ArchiveUrl(db, url, func(err error) {
 		done <- err
