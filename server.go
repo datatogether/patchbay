@@ -93,6 +93,8 @@ func NewServerRoutes() *http.ServeMux {
 	m.Handle("/primers/", middleware(WebappHandler))
 	m.Handle("/subprimers", middleware(WebappHandler))
 	m.Handle("/subprimers/", middleware(WebappHandler))
+	m.Handle("/tasks", middleware(WebappHandler))
+	m.Handle("/tasks/", middleware(WebappHandler))
 
 	m.Handle("/ws", middleware(HandleWebsocketUpgrade))
 

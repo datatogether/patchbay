@@ -41,6 +41,9 @@ type config struct {
 	// url of postgres app db
 	PostgresDbUrl string
 
+	// TasksServiceUrl is the url for performing tasks
+	TasksServiceUrl string
+
 	// Public Key to use for signing metablocks. required.
 	PublicKey string
 

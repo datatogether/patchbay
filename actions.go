@@ -13,7 +13,6 @@ var ClientReqActions = []ClientAction{
 	SessionLoginAct{},
 	SessionLogoutAct{},
 	SessionKeysAct{},
-	// UserReqAct{},
 	MsgReqAct{},
 	SearchReqAct{},
 	FetchUrlAct{},
@@ -35,6 +34,7 @@ var ClientReqActions = []ClientAction{
 	DeleteCollectionAction{},
 	MetadataByKeyRequest{},
 	FetchRecentContentUrlsAction{},
+	TasksRequestAct{},
 }
 
 // Action is a collection of typed events for exchange between client & server
