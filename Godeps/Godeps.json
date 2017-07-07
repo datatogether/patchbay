@@ -148,7 +148,7 @@
 		},
 		{
 			"ImportPath": "github.com/datatogether/archive",
-			"Rev": "4bcbd848055be97d5091c4ccc204d88d9c0b0437"
+			"Rev": "b6a6564a17eadd210c176c677788ca5b4d6ecb23"
 		},
 		{
 			"ImportPath": "github.com/datatogether/config",
@@ -165,6 +165,10 @@
 		{
 			"ImportPath": "github.com/datatogether/sqlutil",
 			"Rev": "ec9f4403bc0568985249d9964ace5867b1e08019"
+		},
+		{
+			"ImportPath": "github.com/datatogether/task-mgmt/tasks",
+			"Rev": "fb56994bcc1faf49fdd721d47bf9e0441da85d42"
 		},
 		{
 			"ImportPath": "github.com/gchaincl/dotsql",
@@ -237,6 +241,10 @@
 			"ImportPath": "github.com/sirupsen/logrus",
 			"Comment": "v0.11.5-46-g5e5dc89",
 			"Rev": "5e5dc898656f695e2a086b8e12559febbfc01562"
+		},
+		{
+			"ImportPath": "github.com/streadway/amqp",
+			"Rev": "27859d32540aebd2e5befa52dc59ae8e6a0132b6"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/acme",

@@ -35,6 +35,7 @@ var ClientReqActions = []ClientAction{
 	MetadataByKeyRequest{},
 	FetchRecentContentUrlsAction{},
 	TasksRequestAct{},
+	TaskEnqueueAct{},
 }
 
 // Action is a collection of typed events for exchange between client & server

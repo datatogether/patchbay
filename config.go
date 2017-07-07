@@ -122,6 +122,11 @@ func initConfig(mode string) (cfg *config, err error) {
 		packagePath("views/notFound.html"),
 	))
 
+	// output to stdout in dev mode
+	if mode == DEVELOP_MODE {
+		log.Out = os.Stdout
+	}
+
 	return
 }
 
