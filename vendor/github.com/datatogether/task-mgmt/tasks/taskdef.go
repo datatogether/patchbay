@@ -1,6 +1,7 @@
 package tasks
 
 import (
+	"fmt"
 	"github.com/ipfs/go-datastore"
 )
 
@@ -12,6 +13,16 @@ var taskdefs = map[string]NewTaskFunc{}
 // RegisterTaskdef registers a task type, must be called before a task can be used.
 func RegisterTaskdef(name string, f NewTaskFunc) {
 	taskdefs[name] = f
+}
+
+// NewTaskable generates a new Taskable instance from the registered
+// types
+func NewTaskable(name string) (Taskable, error) {
+	if taskdefs[name] == nil {
+		return nil, fmt.Errorf("unknown task type: %s", name)
+	}
+
+	return taskdefs[name](), nil
 }
 
 // Taskable anything that fits on a task queue, it is a type of "work"

@@ -5,7 +5,7 @@ import (
 )
 
 // TaskRequests encapsulates all types of requests that can be made
-// in relation to tasks
+// in relation to tasks, to be made available for RPC calls.
 // TODO - should this internal state be moved into the package level
 // via package-level setter funcs?
 type TaskRequests struct {
@@ -17,14 +17,26 @@ type TaskRequests struct {
 	Store datastore.Datastore
 }
 
+// TasksEnqueueParams are for enqueing a task.
 type TasksEnqueueParams struct {
-	Type   string
+	// Title of the task
+	// Requesters should generate their own task title for now
+	// tasks currently have no way of generating a sensible default title
+	Title string
+	// Type of task to perform
+	Type string
+	// User that initiated the request
+	UserId string
+	// Parameters to feed to the task
 	Params map[string]interface{}
 }
 
+// Add a task to the queue for completion
 func (r TaskRequests) Enqueue(params *TasksEnqueueParams, task *Task) (err error) {
 	t := &Task{
+		Title:  params.Title,
 		Type:   params.Type,
+		UserId: params.UserId,
 		Params: params.Params,
 	}
 
@@ -36,6 +48,7 @@ func (r TaskRequests) Enqueue(params *TasksEnqueueParams, task *Task) (err error
 	return nil
 }
 
+// Get a single Task, currently only lookup by ID is supported
 type TasksGetParams struct {
 	Id string
 }

@@ -168,7 +168,7 @@
 		},
 		{
 			"ImportPath": "github.com/datatogether/task-mgmt/tasks",
-			"Rev": "fb56994bcc1faf49fdd721d47bf9e0441da85d42"
+			"Rev": "200a878d028a2e8c82f1421d19df2bddc6fca626"
 		},
 		{
 			"ImportPath": "github.com/gchaincl/dotsql",
