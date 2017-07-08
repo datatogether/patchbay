@@ -61,7 +61,9 @@ func (a *TasksRequestAct) Exec() (res *ClientResponse) {
 
 type TaskEnqueueAct struct {
 	ReqAction
+	Title    string                 `json:"title"`
 	TaskType string                 `json:"taskType"`
+	UserId   string                 `json:"userId"`
 	Params   map[string]interface{} `json:"params"`
 }
 
@@ -90,7 +92,9 @@ func (a *TaskEnqueueAct) Exec() (res *ClientResponse) {
 
 	cli := rpc.NewClient(conn)
 	p := &tasks.TasksEnqueueParams{
+		Title:  a.Title,
 		Type:   a.TaskType,
+		UserId: a.UserId,
 		Params: a.Params,
 	}
 
