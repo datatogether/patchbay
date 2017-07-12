@@ -862,6 +862,7 @@ func (SaveCollectionAction) Parse(reqId string, data json.RawMessage) ClientRequ
 }
 
 func (a *SaveCollectionAction) Exec() (res *ClientResponse) {
+	log.Info(a.Collection)
 	if err := a.Collection.Save(store); err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
@@ -875,14 +876,15 @@ func (a *SaveCollectionAction) Exec() (res *ClientResponse) {
 		Type:      a.SuccessType(),
 		RequestId: a.RequestId,
 		Schema:    "COLLECTION",
-		Data:      a,
+		Data:      a.Collection,
 	}
 }
 
 // DeleteCollectionAction triggers archiving a url
 type DeleteCollectionAction struct {
 	ReqAction
-	Collection *archive.Collection `json:"collection"`
+	// Collection *archive.Collection `json:"collection"`
+	Id string `json:"id"`
 }
 
 func (DeleteCollectionAction) Type() string        { return "COLLECTION_DELETE_REQUEST" }
@@ -897,7 +899,8 @@ func (DeleteCollectionAction) Parse(reqId string, data json.RawMessage) ClientRe
 }
 
 func (a *DeleteCollectionAction) Exec() (res *ClientResponse) {
-	if err := a.Collection.Delete(store); err != nil {
+	c := &archive.Collection{Id: a.Id}
+	if err := c.Delete(store); err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
@@ -910,7 +913,7 @@ func (a *DeleteCollectionAction) Exec() (res *ClientResponse) {
 		Type:      a.SuccessType(),
 		RequestId: a.RequestId,
 		Schema:    "COLLECTION",
-		Data:      a,
+		Data:      c,
 	}
 }
 

@@ -18,7 +18,8 @@ insert into sources
 values
   ('326fcfa0-d3e6-4b2d-8f95-e77220e16109', '2017-01-01 00:00:01', '2017-01-01 00:00:01', 'epa.gov', 'entire epa site', 'www.epa.gov', '5b1031f4-38a8-40b3-be91-c324bf686a87',true,43200000,null,null,null),
   ('590e001b-7060-4e54-bc81-c20c305a8155', '2017-04-25 00:00:01', '2017-04-25 00:00:01', 'Hazardous Air Pollutants', 'Office of Air and Radiation', 'www.epa.gov/haps', '5b1031f4-38a8-40b3-be91-c324bf686a87',true,43200000,null,null,null),
-  ('440d9779-406c-4015-8f2d-404b04ead3a2', '2017-01-01 00:00:01', '2017-01-01 00:00:01', 'census.gov', 'entire census site', 'www.census.gov', 'd9deff9d-15e8-43f1-9d00-51160c0bffbe',true,43200000,null,null,null);
+  ('440d9779-406c-4015-8f2d-404b04ead3a2', '2017-01-01 00:00:01', '2017-01-01 00:00:01', 'census.gov', 'entire census site', 'www.census.gov', 'd9deff9d-15e8-43f1-9d00-51160c0bffbe',true,43200000,null,null,null),
+  ('29855324-f444-4c7f-a7a9-936ee4da538a', '2017-01-01 00:00:01', '2017-01-01 00:00:01', 'data.census.gov', 'non-existent census subdomain', 'data.census.gov', 'd9deff9d-15e8-43f1-9d00-51160c0bffbe',false,43200000,null,null,null);
 --name: delete-sources
 delete from sources;
 
@@ -26,7 +27,7 @@ delete from sources;
 insert into urls
   (url,created,updated,last_head,last_get,status,content_type,content_sniff,content_length,file_name,title,id,headers_took,download_took,headers,meta,hash)
 values
-	('http://www.epa.gov', '2017-01-01 00:00:01', '2017-01-01 00:00:01', '2017-01-01 00:00:01', null, 200, 'text/html; charset=utf-8', 'text/html;', -1, '', 'United States Environmental Protection Agency, US EPA', 'cee7bbd4-2bf9-4b83-b2c8-be6aeb70e771',0,0, '["X-Content-Type-Options","nosniff","Expires","Fri, 24 Feb 2017 21:53:45 GMT","Date","Fri, 24 Feb 2017 21:53:45 GMT","Etag","W/\"7f53-549471782bb42\"","X-Ua-Compatible","IE=Edge,chrome=1","X-Cached-By","Boost","Content-Type","text/html; charset=utf-8","Vary","Accept-Encoding","Accept-Ranges","bytes","Cache-Control","no-cache, no-store, must-revalidate, post-check=0, pre-check=0","Server","Apache","Connection","keep-alive","Strict-Transport-Security","max-age=31536000; preload;"]', null, '1220459219b10032cc86dcdbc0f83aea15a9d3e1119e7b5170beaee233008ea2c2de'),
+  ('http://www.epa.gov', '2017-01-01 00:00:01', '2017-01-01 00:00:01', '2017-01-01 00:00:01', null, 200, 'text/html; charset=utf-8', 'text/html;', -1, '', 'United States Environmental Protection Agency, US EPA', 'cee7bbd4-2bf9-4b83-b2c8-be6aeb70e771',0,0, '["X-Content-Type-Options","nosniff","Expires","Fri, 24 Feb 2017 21:53:45 GMT","Date","Fri, 24 Feb 2017 21:53:45 GMT","Etag","W/\"7f53-549471782bb42\"","X-Ua-Compatible","IE=Edge,chrome=1","X-Cached-By","Boost","Content-Type","text/html; charset=utf-8","Vary","Accept-Encoding","Accept-Ranges","bytes","Cache-Control","no-cache, no-store, must-revalidate, post-check=0, pre-check=0","Server","Apache","Connection","keep-alive","Strict-Transport-Security","max-age=31536000; preload;"]', null, '1220459219b10032cc86dcdbc0f83aea15a9d3e1119e7b5170beaee233008ea2c2de'),
   ('https://www.census.gov/nometa.pdf','2017-03-15 17:36:40', '2017-03-21 22:25:21','2017-03-21 22:25:20.88', '2017-03-21 22:25:20.88', 200,'text/html','application/pdf; charset=utf-8' ,164010, 'nometa.pdf','North American Industry Classification System (NAICS) Main Page � U.S. Census Bureau','4c5fc7b8-1397-4d34-980b-1d01247f9ee4',0,0 ,'["Date","Tue, 21 Mar 2017 22:25:20 GMT","Accept-Ranges","bytes","Content-Type","text/html","Strict-Transport-Security","max-age=31536000","Vary","Accept-Encoding"]',null,'1220af06510193276b5fd9ad2fc55dcc004ada557d9259ca3505478bfef0b12ed988'),
   ('https://www.census.gov/topics/economy/classification-codes.html','2017-03-15 17:36:40', '2017-03-21 22:25:21','2017-03-21 22:25:20.88','2017-03-21 22:25:20.88384',200,'text/html','text/plain; charset=utf-8' ,164010, '','North American Industry Classification System (NAICS) Main Page � U.S. Census Bureau','4c5fc7b8-1397-4d34-980b-1d01247f9ee4',0,0 ,'["Date","Tue, 21 Mar 2017 22:25:20 GMT","Accept-Ranges","bytes","Content-Type","text/html","Strict-Transport-Security","max-age=31536000","Vary","Accept-Encoding"]',null,'12207b06510193276b5fd9ad2fc55dcc004ada557d9259ca3505478bfef0b16ed977');
 -- name: delete-urls
@@ -40,7 +41,7 @@ delete from links;
 
 -- name: insert-snapshots
 -- insert into snapshots values
--- 	();
+--  ();
 -- name: delete-snapshots
 delete from snapshots;
 
@@ -52,8 +53,10 @@ insert into metadata values
 delete from metadata;
 
 -- name: insert-collections
-insert into collections values
-  ('76dd07ac-54cb-4f9d-b0a6-88d3d55c0d9d', '2017-01-01 00:00:01', '2017-01-01 00:00:01', 'bernidette', 'a collection of urls', null, null);
+insert into collections 
+  (id, created, updated, creator, title, url, schema, contents)
+values
+  ('76dd07ac-54cb-4f9d-b0a6-88d3d55c0d9d', '2017-01-01 00:00:01', '2017-01-01 00:00:01', 'bernidette', '', 'a collection of urls', null, null);
 -- name: delete-collections
 delete from collections;
 
@@ -76,3 +79,15 @@ delete from uncrawlables;
 --  ('8b14f3d6-882f-4dd5-92f8-abaac220864f','2017-01-01 00:00:01','http://www.apple.com','');
 -- name: delete-archive_requests
 delete from archive_requests;
+
+-- name: insert-data_repos
+insert into data_repos
+  (id,created,updated,title,description,url)
+values
+  ('d5d9e72c-88f7-46ea-96cf-ae0f590a6f29', '2017-01-01 00:00:01', '2017-01-01 00:00:01', 'archivers 2.0', '', 'https://alpha.archivers.space'),
+  ('2e410539-c8ae-4b58-9f46-7f56f954d502', '2017-01-01 00:00:01', '2017-01-01 00:00:01', 'archivers.space', '', 'https://www.archivers.space'),
+  ('0268b749-f797-4c7e-bc88-cdb910ba4e6b', '2017-01-01 00:00:01', '2017-01-01 00:00:01', 'EOT Nomination Tool', '', 'https://github.com/edgi-govdata-archiving/eot-nomination-tool'),
+  ('e7e78c62-4ef8-45ec-8373-77eedbd44b65', '2017-01-01 00:00:01', '2017-01-01 00:00:01', 'Internet Archive', '', 'https://archive.org'),
+  ('0ed4b297-2af3-47f8-a746-0df780e0ea33', '2017-01-01 00:00:01', '2017-01-01 00:00:01', 'Project Svalbard', '', '');
+-- name: delete-data_repos
+delete from data_repos;
