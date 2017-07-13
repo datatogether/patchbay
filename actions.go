@@ -29,6 +29,7 @@ var ClientReqActions = []ClientAction{
 	FetchSourceAttributedUrlsAction{},
 	FetchConsensusAction{},
 	FetchCollectionAction{},
+	UserCollectionsAction{},
 	FetchCollectionsAction{},
 	SaveCollectionAction{},
 	DeleteCollectionAction{},
@@ -791,6 +792,44 @@ func (FetchCollectionsAction) Parse(reqId string, data json.RawMessage) ClientRe
 
 func (a *FetchCollectionsAction) Exec() (res *ClientResponse) {
 	collections, err := archive.ListCollections(store, 50, 0)
+	if err != nil {
+		log.Info(err.Error())
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
+
+	return &ClientResponse{
+		Type:      a.SuccessType(),
+		RequestId: a.RequestId,
+		Schema:    "COLLECTION_ARRAY",
+		Data:      collections,
+	}
+}
+
+// UserCollectionsAction grabs a page of a user's collections
+type UserCollectionsAction struct {
+	ReqAction
+	Creator  string
+	Page     int
+	PageSize int
+}
+
+func (UserCollectionsAction) Type() string        { return "USER_COLLECTIONS_REQUEST" }
+func (UserCollectionsAction) SuccessType() string { return "USER_COLLECTIONS_SUCCESS" }
+func (UserCollectionsAction) FailureType() string { return "USER_COLLECTIONS_FAILURE" }
+
+func (UserCollectionsAction) Parse(reqId string, data json.RawMessage) ClientRequestAction {
+	a := &UserCollectionsAction{}
+	a.RequestId = reqId
+	a.err = json.Unmarshal(data, a)
+	return a
+}
+
+func (a *UserCollectionsAction) Exec() (res *ClientResponse) {
+	collections, err := archive.CollectionsByCreator(store, a.Creator, "created DESC", a.PageSize, (a.Page-1)*a.PageSize)
 	if err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
