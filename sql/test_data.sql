@@ -54,9 +54,27 @@ delete from metadata;
 
 -- name: insert-collections
 insert into collections 
-  (id, created, updated, creator, title, url, schema, contents)
+  (id, created, updated, 
+    creator,
+    title, schema, description, url, 
+    contents)
 values
-  ('76dd07ac-54cb-4f9d-b0a6-88d3d55c0d9d', '2017-01-01 00:00:01', '2017-01-01 00:00:01', 'bernidette', '', 'a collection of urls', null, null);
+  ('6995febc-b7be-49ba-8297-1db68a703c3c','2017-07-13 15:57:32','2017-07-13 21:39:38',
+    'EDGI_644b51b9567d0d999e40f697d7406a26030cde95a83775d285ff1f57a73b3ebc',
+    'EPA TRU Datasets','["hash","url","description"]', 'essential TRU datasets', '',
+    null),
+  ('f444f782-2110-43ca-956c-2c5f0dd56b1a','2017-07-12 23:18:59','2017-07-13 21:57:11',
+    'EDGI_644b51b9567d0d999e40f697d7406a26030cde95a83775d285ff1f57a73b3ebc',
+    'NOAA Volatile Organic Compound CSV files','["hash","url","description"]', 'VOC datasests', '',
+    null),
+  ('a73a9d04-0fdb-40c8-a97f-288af36e8f6f','2017-07-13 18:45:03','2017-07-13 21:59:25',
+    'blackglade_644b51b9567d0d999e40f697d7406a26030cde95a83775d285ff1f57a73b3ebc',
+    'Test Collection','["hash","url","description"]', '', '',
+    null),
+  ('4ed29ffe-150f-42ce-b0a9-2aadde646bcb','2017-07-11 17:50:19','2017-07-14 00:30:10',
+    'jeffliu_644b51b9567d0d999e40f697d7406a26030cde95a83775d285ff1f57a73b3ebc',
+    'All of the puppies','["hash","url","description"]', 'My fav puppy images', '',
+    '[["","https://i.imgur.com/LJf4LzX.jpg","puppies in a car"],["","https://i.imgur.com/UE4nxKJ.gifv","puppy in a sweater in a car"],["","https://i.imgur.com/ku6IEJf.gifv","momma with puppies"],["","https://i.imgur.com/y22NjCp.jpg","brown puppy"],["","https://i.imgur.com/1x8lR0p.jpg",""],["","http://i.imgur.com/26fVJAE.gifv",""]]');
 -- name: delete-collections
 delete from collections;
 

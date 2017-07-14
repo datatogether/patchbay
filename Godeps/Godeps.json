@@ -148,7 +148,7 @@
 		},
 		{
 			"ImportPath": "github.com/datatogether/archive",
-			"Rev": "b6a6564a17eadd210c176c677788ca5b4d6ecb23"
+			"Rev": "7ba76f1cb137b1b862c4ac2c2a78e84ff4e429ac"
 		},
 		{
 			"ImportPath": "github.com/datatogether/config",
@@ -168,7 +168,7 @@
 		},
 		{
 			"ImportPath": "github.com/datatogether/task-mgmt/tasks",
-			"Rev": "200a878d028a2e8c82f1421d19df2bddc6fca626"
+			"Rev": "1454153e51a5db933addcae59761ff3d1a6621cf"
 		},
 		{
 			"ImportPath": "github.com/gchaincl/dotsql",
