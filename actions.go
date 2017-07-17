@@ -16,6 +16,7 @@ var ClientReqActions = []ClientAction{
 	MsgReqAct{},
 	SearchReqAct{},
 	FetchUrlAct{},
+	FetchCollectionsAction{},
 	FetchInboundLinksAct{},
 	FetchOutboundLinksAct{},
 	FetchContentUrlsAction{},

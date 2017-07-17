@@ -164,11 +164,21 @@
 		},
 		{
 			"ImportPath": "github.com/datatogether/sqlutil",
-			"Rev": "ec9f4403bc0568985249d9964ace5867b1e08019"
+			"Rev": "c471ed88dde35a8af1fb164020b88b65badee7f7"
 		},
 		{
 			"ImportPath": "github.com/datatogether/task-mgmt/tasks",
-			"Rev": "1454153e51a5db933addcae59761ff3d1a6621cf"
+			"Rev": "96ba9cc37bbb2439bceb4f26a82846957b6b6507"
+		},
+		{
+			"ImportPath": "github.com/garyburd/redigo/internal",
+			"Comment": "v1.1.0-7-g9f3a011",
+			"Rev": "9f3a0116c9f72c5a56f958206a43dc881b502c37"
+		},
+		{
+			"ImportPath": "github.com/garyburd/redigo/redis",
+			"Comment": "v1.1.0-7-g9f3a011",
+			"Rev": "9f3a0116c9f72c5a56f958206a43dc881b502c37"
 		},
 		{
 			"ImportPath": "github.com/gchaincl/dotsql",

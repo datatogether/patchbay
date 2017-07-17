@@ -73,6 +73,10 @@ func (t Task) Key() datastore.Key {
 	return datastore.NewKey(fmt.Sprintf("%s:%s", t.DatastoreType(), t.GetId()))
 }
 
+func (t *Task) PubSubChannelName() string {
+	return fmt.Sprintf("tasks.%s", t.Id)
+}
+
 // QueueMsg formats the task as an amqp.Publishing message for adding to a queue
 func (t *Task) QueueMsg() (amqp.Publishing, error) {
 	body, err := json.Marshal(t.Params)
@@ -154,7 +158,7 @@ func TaskFromDelivery(store datastore.Datastore, msg amqp.Delivery) (*Task, erro
 }
 
 // Do performs the
-func (task *Task) Do(store datastore.Datastore) error {
+func (task *Task) Do(store datastore.Datastore, tc chan *Task) error {
 	newTask := taskdefs[task.Type]
 	if newTask == nil {
 		return fmt.Errorf("unknown task type: %s", task.Type)
@@ -176,8 +180,11 @@ func (task *Task) Do(store datastore.Datastore) error {
 		dsT.SetDatastore(store)
 	}
 
-	// created buffered progress updates channel
 	pc := make(chan Progress, 10)
+
+	if err := task.Save(store); err != nil {
+		return err
+	}
 
 	// execute the task in a goroutine
 	go tt.Do(pc)
@@ -187,6 +194,7 @@ func (task *Task) Do(store datastore.Datastore) error {
 		// so others can listen in for updates
 		// log.Printf("")
 		task.Progress = &p
+		tc <- task
 
 		if p.Error != nil {
 			task.Error = p.Error.Error()

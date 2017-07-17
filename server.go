@@ -55,6 +55,12 @@ func main() {
 		&archive.Collection{},
 	)
 
+	go func() {
+		if err := SubscribeTaskProgress(); err != nil {
+			log.Infoln("task progress error:", err.Error())
+		}
+	}()
+
 	room = newRoom()
 	go room.run()
 

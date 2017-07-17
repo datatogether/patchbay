@@ -40,6 +40,8 @@ type config struct {
 
 	// url of postgres app db
 	PostgresDbUrl string
+	// url of redis app db
+	RedisUrl string
 
 	// TasksServiceUrl is the url for performing tasks
 	TasksServiceUrl string
