@@ -168,7 +168,7 @@
 		},
 		{
 			"ImportPath": "github.com/datatogether/task-mgmt/tasks",
-			"Rev": "ec1442899197c7f6badc2eae9bf5b74875a11cfc"
+			"Rev": "96ba9cc37bbb2439bceb4f26a82846957b6b6507"
 		},
 		{
 			"ImportPath": "github.com/garyburd/redigo/internal",
