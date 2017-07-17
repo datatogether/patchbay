@@ -154,7 +154,7 @@ func TaskFromDelivery(store datastore.Datastore, msg amqp.Delivery) (*Task, erro
 }
 
 // Do performs the
-func (task *Task) Do(store datastore.Datastore) error {
+func (task *Task) Do(store datastore.Datastore, pc chan Progress) error {
 	newTask := taskdefs[task.Type]
 	if newTask == nil {
 		return fmt.Errorf("unknown task type: %s", task.Type)
@@ -175,9 +175,6 @@ func (task *Task) Do(store datastore.Datastore) error {
 	if dsT, ok := tt.(DatastoreTaskable); ok {
 		dsT.SetDatastore(store)
 	}
-
-	// created buffered progress updates channel
-	pc := make(chan Progress, 10)
 
 	// execute the task in a goroutine
 	go tt.Do(pc)
