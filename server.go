@@ -55,6 +55,8 @@ func main() {
 		&archive.Collection{},
 	)
 
+	go connectRedis()
+
 	room = newRoom()
 	go room.run()
 
