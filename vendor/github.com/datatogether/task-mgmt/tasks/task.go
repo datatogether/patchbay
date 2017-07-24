@@ -300,8 +300,8 @@ func (t *Task) Delete(store datastore.Datastore) error {
 	return store.Delete(t.Key())
 }
 
-func (t *Task) NewSQLModel(id string) sql_datastore.Model {
-	return &Task{Id: id}
+func (t *Task) NewSQLModel(key datastore.Key) sql_datastore.Model {
+	return &Task{Id: key.Name()}
 }
 
 func (t *Task) SQLQuery(cmd sql_datastore.Cmd) string {

@@ -58,7 +58,7 @@ func (c *Client) ArchiveUrl(db *sql.DB, reqId, url string) {
 
 	if err := u.Read(store); err != nil {
 		if err == archive.ErrNotFound {
-			if err := u.Insert(store); err != nil {
+			if err := u.Save(store); err != nil {
 				log.Info(err.Error())
 				c.SendResponse(&ClientResponse{
 					Type:      "URL_ARCHIVE_ERROR",
@@ -178,7 +178,7 @@ func ArchiveUrl(db *sql.DB, url string, done func(err error)) (*archive.Url, []*
 
 	if err := u.Read(store); err != nil {
 		if err == archive.ErrNotFound {
-			if err := u.Insert(store); err != nil {
+			if err := u.Save(store); err != nil {
 				done(err)
 				return nil, nil, err
 			}

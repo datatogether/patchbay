@@ -957,6 +957,120 @@ func (a *DeleteCollectionAction) Exec() (res *ClientResponse) {
 	}
 }
 
+// CollectionItemsAction grabs a page of collection items
+type CollectionItemsAction struct {
+	ReqAction
+	CollectionId string
+	Page         int
+	PageSize     int
+}
+
+func (CollectionItemsAction) Type() string        { return "COLLECTION_ITEMS_REQUEST" }
+func (CollectionItemsAction) SuccessType() string { return "COLLECTION_ITEMS_SUCCESS" }
+func (CollectionItemsAction) FailureType() string { return "COLLECTION_ITEMS_FAILURE" }
+
+func (CollectionItemsAction) Parse(reqId string, data json.RawMessage) ClientRequestAction {
+	a := &CollectionItemsAction{}
+	a.RequestId = reqId
+	a.err = json.Unmarshal(data, a)
+	return a
+}
+
+func (a *CollectionItemsAction) Exec() (res *ClientResponse) {
+	c := archive.Collection{Id: a.CollectionId}
+
+	items, err := c.ReadItems(store, "created DESC", a.PageSize, (a.Page-1)*a.PageSize)
+	if err != nil {
+		log.Info(err.Error())
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
+
+	return &ClientResponse{
+		Type:      a.SuccessType(),
+		RequestId: a.RequestId,
+		Schema:    "COLLECTION_ITEM_ARRAY",
+		Data:      items,
+	}
+}
+
+// SaveCollectionItemsAction grabs a page of collection items
+type SaveCollectionItemsAction struct {
+	ReqAction
+	CollectionId string
+	Items        []*archive.CollectionItem
+}
+
+func (SaveCollectionItemsAction) Type() string        { return "COLLECTION_SAVE_ITEMS_REQUEST" }
+func (SaveCollectionItemsAction) SuccessType() string { return "COLLECTION_SAVE_ITEMS_SUCCESS" }
+func (SaveCollectionItemsAction) FailureType() string { return "COLLECTION_SAVE_ITEMS_FAILURE" }
+
+func (SaveCollectionItemsAction) Parse(reqId string, data json.RawMessage) ClientRequestAction {
+	a := &SaveCollectionItemsAction{}
+	a.RequestId = reqId
+	a.err = json.Unmarshal(data, a)
+	return a
+}
+
+func (a *SaveCollectionItemsAction) Exec() (res *ClientResponse) {
+	c := archive.Collection{Id: a.CollectionId}
+	if err := c.SaveItems(store, a.Items); err != nil {
+		log.Info(err.Error())
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
+
+	return &ClientResponse{
+		Type:      a.SuccessType(),
+		RequestId: a.RequestId,
+		Schema:    "COLLECTION_ITEM_ARRAY",
+		Data:      a.Items,
+	}
+}
+
+// DeleteCollectionItemsAction grabs a page of collection items
+type DeleteCollectionItemsAction struct {
+	ReqAction
+	CollectionId string
+	Items        []*archive.CollectionItem
+}
+
+func (DeleteCollectionItemsAction) Type() string        { return "COLLECTION_DELETE_ITEMS_REQUEST" }
+func (DeleteCollectionItemsAction) SuccessType() string { return "COLLECTION_DELETE_ITEMS_SUCCESS" }
+func (DeleteCollectionItemsAction) FailureType() string { return "COLLECTION_DELETE_ITEMS_FAILURE" }
+
+func (DeleteCollectionItemsAction) Parse(reqId string, data json.RawMessage) ClientRequestAction {
+	a := &DeleteCollectionItemsAction{}
+	a.RequestId = reqId
+	a.err = json.Unmarshal(data, a)
+	return a
+}
+
+func (a *DeleteCollectionItemsAction) Exec() (res *ClientResponse) {
+	c := archive.Collection{Id: a.CollectionId}
+	if err := c.DeleteItems(store, a.Items); err != nil {
+		log.Info(err.Error())
+		return &ClientResponse{
+			Type:      a.FailureType(),
+			RequestId: a.RequestId,
+			Error:     err.Error(),
+		}
+	}
+
+	return &ClientResponse{
+		Type:      a.SuccessType(),
+		RequestId: a.RequestId,
+		Schema:    "COLLECTION_ITEM_ARRAY",
+		Data:      a.Items,
+	}
+}
+
 // MetadataByKeyRequest triggers archiving a url
 type MetadataByKeyRequest struct {
 	ReqAction
