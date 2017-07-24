@@ -53,6 +53,7 @@ func main() {
 		&archive.Primer{},
 		&archive.Source{},
 		&archive.Collection{},
+		&archive.CollectionItem{},
 	)
 
 	go func() {

@@ -148,7 +148,7 @@
 		},
 		{
 			"ImportPath": "github.com/datatogether/archive",
-			"Rev": "ef12efb511b097baaebe5dbc1458d769d1e42a63"
+			"Rev": "94bd75820c07fbe22ed2c2e476aee095d1a1eb63"
 		},
 		{
 			"ImportPath": "github.com/datatogether/config",

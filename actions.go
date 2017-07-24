@@ -38,6 +38,9 @@ var ClientReqActions = []ClientAction{
 	FetchRecentContentUrlsAction{},
 	TasksRequestAct{},
 	TaskEnqueueAct{},
+	CollectionItemsAction{},
+	SaveCollectionItemsAction{},
+	DeleteCollectionItemsAction{},
 }
 
 // Action is a collection of typed events for exchange between client & server
@@ -977,6 +980,7 @@ func (CollectionItemsAction) Parse(reqId string, data json.RawMessage) ClientReq
 }
 
 func (a *CollectionItemsAction) Exec() (res *ClientResponse) {
+	log.Println(a)
 	c := archive.Collection{Id: a.CollectionId}
 
 	items, err := c.ReadItems(store, "created DESC", a.PageSize, (a.Page-1)*a.PageSize)
@@ -989,11 +993,16 @@ func (a *CollectionItemsAction) Exec() (res *ClientResponse) {
 		}
 	}
 
+	log.Println(items)
+
 	return &ClientResponse{
 		Type:      a.SuccessType(),
 		RequestId: a.RequestId,
 		Schema:    "COLLECTION_ITEM_ARRAY",
 		Data:      items,
+		Id:        a.CollectionId,
+		Page:      a.Page,
+		PageSize:  a.PageSize,
 	}
 }
 
