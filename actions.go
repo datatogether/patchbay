@@ -1037,6 +1037,11 @@ func (a *SaveCollectionItemsAction) Exec() (res *ClientResponse) {
 		RequestId: a.RequestId,
 		Schema:    "COLLECTION_ITEM_ARRAY",
 		Data:      a.Items,
+		// need to provide collection id & pagination info to
+		// pull items out of pagination client-side
+		Id:       c.Id,
+		Page:     1,
+		PageSize: len(a.Items),
 	}
 }
 
@@ -1074,6 +1079,11 @@ func (a *DeleteCollectionItemsAction) Exec() (res *ClientResponse) {
 		RequestId: a.RequestId,
 		Schema:    "COLLECTION_ITEM_ARRAY",
 		Data:      a.Items,
+		// need to provide collection id & pagination info to
+		// pull items out of pagination client-side
+		Id:       c.Id,
+		Page:     1,
+		PageSize: len(a.Items),
 	}
 }
 
