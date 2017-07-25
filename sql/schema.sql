@@ -1,5 +1,5 @@
 -- name: drop-all
-DROP TABLE IF EXISTS urls, links, primers, sources, subprimers, alerts, context, metadata, supress_alerts, snapshots, collections, archive_requests, uncrawlables, data_repos;
+DROP TABLE IF EXISTS urls, links, primers, sources, subprimers, alerts, context, metadata, supress_alerts, snapshots, collections, collection_items, archive_requests, uncrawlables, data_repos;
 
 -- name: create-primers
 CREATE TABLE IF NOT EXISTS primers (
@@ -89,18 +89,20 @@ CREATE TABLE IF NOT EXISTS collections (
   created          timestamp NOT NULL,
   updated          timestamp NOT NULL,
   creator          text NOT NULL DEFAULT '',
-  title            text NOT NULL DEFAULT '',
   description      text NOT NULL DEFAULT '',
+  title            text NOT NULL DEFAULT '',
   url              text NOT NULL DEFAULT '',
   schema           json,
   contents         json
 );
 
--- name: create-collection_contents
-CREATE TABLE IF NOT EXISTS collection_contents (
+-- name: create-collection_items
+CREATE TABLE IF NOT EXISTS collection_items (
   collection_id    UUID NOT NULL,
-  hash             text NOT NULL default '',
-  PRIMARY KEY      (collection_id, hash)
+  url_id           text NOT NULL default '',
+  index            integer NOT NULL default -1,
+  description      text NOT NULL default '',
+  PRIMARY KEY      (collection_id, url_id)
 );
 
 -- name: create-uncrawlables
