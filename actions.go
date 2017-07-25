@@ -980,7 +980,6 @@ func (CollectionItemsAction) Parse(reqId string, data json.RawMessage) ClientReq
 }
 
 func (a *CollectionItemsAction) Exec() (res *ClientResponse) {
-	log.Println(a)
 	c := archive.Collection{Id: a.CollectionId}
 
 	items, err := c.ReadItems(store, "created DESC", a.PageSize, (a.Page-1)*a.PageSize)
@@ -992,8 +991,6 @@ func (a *CollectionItemsAction) Exec() (res *ClientResponse) {
 			Error:     err.Error(),
 		}
 	}
-
-	log.Println(items)
 
 	return &ClientResponse{
 		Type:      a.SuccessType(),
