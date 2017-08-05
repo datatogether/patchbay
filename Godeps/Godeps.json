@@ -148,7 +148,7 @@
 		},
 		{
 			"ImportPath": "github.com/datatogether/archive",
-			"Rev": "7ba76f1cb137b1b862c4ac2c2a78e84ff4e429ac"
+			"Rev": "94bd75820c07fbe22ed2c2e476aee095d1a1eb63"
 		},
 		{
 			"ImportPath": "github.com/datatogether/config",
@@ -160,7 +160,7 @@
 		},
 		{
 			"ImportPath": "github.com/datatogether/sql_datastore",
-			"Rev": "a74da6a9ede6dfeb88280282ac9abaa908dfdfa2"
+			"Rev": "b0c91273ed161344348fb9c89e90a7b4edcb3a68"
 		},
 		{
 			"ImportPath": "github.com/datatogether/sqlutil",
@@ -168,7 +168,7 @@
 		},
 		{
 			"ImportPath": "github.com/datatogether/task-mgmt/tasks",
-			"Rev": "96ba9cc37bbb2439bceb4f26a82846957b6b6507"
+			"Rev": "a2e71263743e0caf76f4ac21fb8a40e330b32614"
 		},
 		{
 			"ImportPath": "github.com/garyburd/redigo/internal",

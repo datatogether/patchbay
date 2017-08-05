@@ -89,6 +89,7 @@ func initializeDatabase(db *sql.DB) error {
 		"create-collections",
 		"create-archive_requests",
 		"create-uncrawlables",
+		"create-collection_items",
 	} {
 		if _, err := schema.Exec(db, cmd); err != nil {
 			fmt.Println(cmd, "error:", err)
@@ -107,6 +108,7 @@ func initializeDatabase(db *sql.DB) error {
 		"collections",
 		"archive_requests",
 		"uncrawlables",
+		"collection_items",
 	); err != nil {
 		return err
 	}

@@ -53,6 +53,7 @@ func main() {
 		&archive.Primer{},
 		&archive.Source{},
 		&archive.Collection{},
+		&archive.CollectionItem{},
 	)
 
 	go func() {
@@ -72,7 +73,7 @@ func main() {
 	printConfigInfo()
 
 	// fire it up!
-	log.Infof("starting server on port %s in %s mode", cfg.Port, cfg.Mode)
+	log.Infof("🌎 starting server on port %s in %s mode", cfg.Port, cfg.Mode)
 
 	// start server wrapped in a log.Fatal b/c http.ListenAndServe will not
 	// return unless there's an error
