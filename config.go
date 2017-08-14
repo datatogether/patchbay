@@ -45,6 +45,8 @@ type config struct {
 
 	// TasksServiceUrl is the url for performing tasks
 	TasksServiceUrl string
+	// url for identity server
+	IdentityServiceUrl string
 
 	// Public Key to use for signing metablocks. required.
 	PublicKey string
@@ -119,6 +121,7 @@ func initConfig(mode string) (cfg *config, err error) {
 	})
 
 	templates = template.Must(template.ParseFiles(
+		packagePath("views/profile.html"),
 		packagePath("views/webapp.html"),
 		packagePath("views/accessDenied.html"),
 		packagePath("views/notFound.html"),

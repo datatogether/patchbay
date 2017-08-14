@@ -85,6 +85,7 @@ func main() {
 func NewServerRoutes() *http.ServeMux {
 	m := http.NewServeMux()
 	m.HandleFunc("/.well-known/acme-challenge/", CertbotHandler)
+	m.Handle("/profile", middleware(UserProfileHandler))
 
 	m.Handle("/", middleware(WebappHandler))
 	m.Handle("/url", middleware(WebappHandler))

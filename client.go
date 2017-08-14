@@ -128,11 +128,13 @@ func (c *Client) writePump() {
 
 func (c *Client) HandleAction(data []byte) {
 	action := struct {
-		Type      string
-		RequestId string
-		Data      json.RawMessage
+		Type        string
+		RequestId   string
+		SilentError bool
+		Data        json.RawMessage
 	}{}
 	if err := json.Unmarshal(data, &action); err != nil {
+		log.Infof("error parsing action JSON: %s", err.Error())
 		c.SendResponse(&ClientResponse{
 			Type:  "PARSE_ERROR",
 			Error: fmt.Sprintf("action parsing error type: %s", err.Error()),
@@ -140,21 +142,26 @@ func (c *Client) HandleAction(data []byte) {
 		return
 	}
 	// TODO - This looks a lot like a muxer...
-	if action.Type == "URL_ARCHIVE_REQUEST" {
-		act := struct {
-			Url string
-		}{}
-		if err := json.Unmarshal(action.Data, &act); err != nil {
-			c.SendResponse(&ClientResponse{
-				Type:  "PARSE_ERROR",
-				Error: fmt.Sprintf("action parsing error: %s", err.Error()),
-			})
-			return
-		}
-		c.ArchiveUrl(appDB, action.RequestId, act.Url)
-	} else if strings.HasSuffix(action.Type, "REQUEST") {
-		c.HandleRequestAction(action.Type, action.RequestId, action.Data)
+	// if action.Type == "URL_ARCHIVE_REQUEST" {
+	// 	act := struct {
+	// 		Url string
+	// 	}{}
+	// 	if err := json.Unmarshal(action.Data, &act); err != nil {
+	// 		c.SendResponse(&ClientResponse{
+	// 			Type:  "PARSE_ERROR",
+	// 			Error: fmt.Sprintf("action parsing error: %s", err.Error()),
+	// 		})
+	// 		return
+	// 	}
+	// 	c.ArchiveUrl(appDB, action.RequestId, act.Url)
+	// } else
+
+	if strings.HasSuffix(action.Type, "REQUEST") {
+		log.Infof("%s: %s", action.RequestId, action.Type)
+		c.HandleRequestAction(action.Type, action.RequestId, action.SilentError, action.Data)
+		return
 	}
+	log.Infof("unrecognized action: %s", action.Type)
 }
 
 func (c *Client) SendResponse(res *ClientResponse) {
@@ -172,10 +179,11 @@ func (c *Client) SendResponse(res *ClientResponse) {
 	// }
 }
 
-func (c *Client) HandleRequestAction(req string, reqId string, data json.RawMessage) {
+func (c *Client) HandleRequestAction(req string, reqId string, silentError bool, data json.RawMessage) {
 	for _, t := range ClientReqActions {
 		if t.Type() == req {
 			res := t.Parse(reqId, data).Exec()
+			res.SilentError = silentError
 			c.SendResponse(res)
 		}
 	}

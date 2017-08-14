@@ -67,20 +67,22 @@ type ServerRequestAction interface {
 }
 
 type ClientResponse struct {
-	Type      string      `json:"type"`
-	RequestId string      `json:"requestId"`
-	Error     string      `json:"error,omitempty"`
-	Message   string      `json:"message,omitempty"`
-	Schema    string      `json:"schema,omitempty"`
-	Page      int         `json:"page,omitempty"`
-	PageSize  int         `json:"pageSize,omitempty"`
-	Id        string      `json:"id,omitempty"`
-	Data      interface{} `json:"data,omitempty"`
+	Type        string      `json:"type"`
+	RequestId   string      `json:"requestId"`
+	Error       string      `json:"error,omitempty"`
+	SilentError bool        `json:"silentError,omitempty"`
+	Message     string      `json:"message,omitempty"`
+	Schema      string      `json:"schema,omitempty"`
+	Page        int         `json:"page,omitempty"`
+	PageSize    int         `json:"pageSize,omitempty"`
+	Id          string      `json:"id,omitempty"`
+	Data        interface{} `json:"data,omitempty"`
 }
 
 type ReqAction struct {
-	err       error
-	RequestId string `json:"requestId"`
+	RequestId   string `json:"requestId"`
+	SilentError bool   `json:"silentError"`
+	err         error
 }
 
 type MsgReqAct struct {
@@ -173,9 +175,10 @@ func (a *FetchUrlAct) Exec() (res *ClientResponse) {
 	}
 
 	return &ClientResponse{
-		Type:   a.SuccessType(),
-		Schema: "URL",
-		Data:   u,
+		Type:      a.SuccessType(),
+		Schema:    "URL",
+		RequestId: a.RequestId,
+		Data:      u,
 	}
 }
 
@@ -385,7 +388,6 @@ func (SaveMetadataAction) Parse(reqId string, data json.RawMessage) ClientReques
 }
 
 func (a *SaveMetadataAction) Exec() (res *ClientResponse) {
-	log.Info(a)
 	m, err := archive.NextMetadata(appDB, a.KeyId, a.Subject)
 	if err != nil {
 		log.Info(err.Error())
@@ -406,7 +408,6 @@ func (a *SaveMetadataAction) Exec() (res *ClientResponse) {
 		}
 	}
 
-	log.Info(m)
 	return &ClientResponse{
 		Type:      a.SuccessType(),
 		RequestId: a.RequestId,
