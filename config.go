@@ -171,4 +171,12 @@ func fileExists(path string) bool {
 // outputs any notable settings to stdout
 func printConfigInfo() {
 	// TODO
+	log.Println("Mode:", cfg.Mode)
+	log.Println("Gopath:", cfg.Gopath)
+	log.Println("Port:", cfg.Port)
+	log.Println("Title:", cfg.Title)
+	log.Println("UrlRoot:", cfg.UrlRoot)
+	// log.Println("PostgresDbUrl:", cfg.PostgresDbUrl)
+	log.Println("RedisUrl:", cfg.RedisUrl)
+	log.Println("TasksServiceUrl:", cfg.TasksServiceUrl)
 }
