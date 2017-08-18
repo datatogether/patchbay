@@ -79,6 +79,7 @@ func (TaskEnqueueAct) Parse(reqId string, data json.RawMessage) ClientRequestAct
 }
 
 func (a *TaskEnqueueAct) Exec() (res *ClientResponse) {
+	log.Infof("adding task %s: %s", a.TaskType, a.Title)
 	conn, err := net.Dial("tcp", cfg.TasksServiceUrl)
 	if err != nil {
 		log.Info(err.Error())
@@ -90,6 +91,7 @@ func (a *TaskEnqueueAct) Exec() (res *ClientResponse) {
 		return
 	}
 
+	log.Infof("successfully dialed tasks server")
 	cli := rpc.NewClient(conn)
 	p := &tasks.TasksEnqueueParams{
 		Title:  a.Title,
@@ -99,6 +101,7 @@ func (a *TaskEnqueueAct) Exec() (res *ClientResponse) {
 	}
 
 	reply := &tasks.Task{}
+	log.Infof("enquing task")
 	if err := cli.Call("TaskRequests.Enqueue", p, reply); err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
@@ -108,7 +111,7 @@ func (a *TaskEnqueueAct) Exec() (res *ClientResponse) {
 		}
 		return
 	}
-
+	log.Infof("task enqued")
 	return &ClientResponse{
 		Type:      a.SuccessType(),
 		RequestId: a.RequestId,
