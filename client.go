@@ -24,7 +24,8 @@ const (
 	// Careful with this one, if messages exceed this size it seems the default
 	// behaviour is to close the connection.
 	// TODO - properly handle messages that are too large client side
-	maxMessageSize = 2048
+	// previous values: 2048
+	maxMessageSize = 32786
 )
 
 var (
