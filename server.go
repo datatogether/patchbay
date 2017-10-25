@@ -3,7 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"github.com/datatogether/archive"
+	"github.com/datatogether/core"
 	"github.com/datatogether/sql_datastore"
 	"github.com/gchaincl/dotsql"
 	"github.com/sirupsen/logrus"
@@ -48,12 +48,12 @@ func main() {
 	connectToAppDb()
 	sql_datastore.SetDB(appDB)
 	sql_datastore.Register(
-		&archive.Url{},
-		&archive.Link{},
-		&archive.Primer{},
-		&archive.Source{},
-		&archive.Collection{},
-		&archive.CollectionItem{},
+		&core.Url{},
+		&core.Link{},
+		&core.Primer{},
+		&core.Source{},
+		&core.Collection{},
+		&core.CollectionItem{},
 	)
 
 	go func() {
