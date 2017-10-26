@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/datatogether/task-mgmt/tasks"
+	"github.com/datatogether/task_mgmt/tasks"
 	"net"
 	"net/rpc"
 )

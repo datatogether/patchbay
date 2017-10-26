@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/datatogether/archive"
+	"github.com/datatogether/core"
 )
 
 // ClientReqActions is a list of all actions a client may request
@@ -131,7 +131,7 @@ func (s *SearchReqAct) Exec() (res *ClientResponse) {
 	if s.Page > 0 {
 		s.Page = s.Page - 1
 	}
-	results, err := archive.Search(appDB, s.Query, s.PageSize, s.Page*s.PageSize)
+	results, err := core.Search(appDB, s.Query, s.PageSize, s.Page*s.PageSize)
 	if err != nil {
 		return &ClientResponse{
 			Type:      s.FailureType(),
@@ -165,7 +165,7 @@ func (FetchUrlAct) Parse(reqId string, data json.RawMessage) ClientRequestAction
 }
 
 func (a *FetchUrlAct) Exec() (res *ClientResponse) {
-	u := &archive.Url{Url: a.Url}
+	u := &core.Url{Url: a.Url}
 	if err := u.Read(store); err != nil {
 		return &ClientResponse{
 			Type:      a.FailureType(),
@@ -199,7 +199,7 @@ func (FetchInboundLinksAct) Parse(reqId string, data json.RawMessage) ClientRequ
 }
 
 func (a *FetchInboundLinksAct) Exec() (res *ClientResponse) {
-	links, err := archive.ReadSrcLinks(appDB, &archive.Url{Url: a.Url})
+	links, err := core.ReadSrcLinks(appDB, &core.Url{Url: a.Url})
 	if err != nil {
 		return &ClientResponse{
 			Type:      a.FailureType(),
@@ -233,7 +233,7 @@ func (FetchOutboundLinksAct) Parse(reqId string, data json.RawMessage) ClientReq
 }
 
 func (a *FetchOutboundLinksAct) Exec() (res *ClientResponse) {
-	links, err := archive.ReadDstLinks(appDB, &archive.Url{Url: a.Url})
+	links, err := core.ReadDstLinks(appDB, &core.Url{Url: a.Url})
 	if err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
@@ -271,7 +271,7 @@ func (FetchRecentContentUrlsAction) Parse(reqId string, data json.RawMessage) Cl
 }
 
 func (a *FetchRecentContentUrlsAction) Exec() (res *ClientResponse) {
-	urls, err := archive.ContentUrls(appDB, a.PageSize, a.PageSize*(a.Page-1))
+	urls, err := core.ContentUrls(appDB, a.PageSize, a.PageSize*(a.Page-1))
 	if err != nil {
 		return &ClientResponse{
 			Type:      a.FailureType(),
@@ -308,7 +308,7 @@ func (FetchContentUrlsAction) Parse(reqId string, data json.RawMessage) ClientRe
 }
 
 func (a *FetchContentUrlsAction) Exec() (res *ClientResponse) {
-	urls, err := archive.UrlsForHash(appDB, a.Hash)
+	urls, err := core.UrlsForHash(appDB, a.Hash)
 	if err != nil {
 		return &ClientResponse{
 			Type:      a.FailureType(),
@@ -343,9 +343,9 @@ func (FetchMetadataAction) Parse(reqId string, data json.RawMessage) ClientReque
 }
 
 func (a *FetchMetadataAction) Exec() (res *ClientResponse) {
-	m, err := archive.LatestMetadata(appDB, a.KeyId, a.Subject)
+	m, err := core.LatestMetadata(appDB, a.KeyId, a.Subject)
 	if err != nil {
-		if err == archive.ErrNotFound {
+		if err == core.ErrNotFound {
 			return &ClientResponse{
 				Type:      a.SuccessType(),
 				RequestId: a.RequestId,
@@ -388,7 +388,7 @@ func (SaveMetadataAction) Parse(reqId string, data json.RawMessage) ClientReques
 }
 
 func (a *SaveMetadataAction) Exec() (res *ClientResponse) {
-	m, err := archive.NextMetadata(appDB, a.KeyId, a.Subject)
+	m, err := core.NextMetadata(appDB, a.KeyId, a.Subject)
 	if err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
@@ -399,7 +399,7 @@ func (a *SaveMetadataAction) Exec() (res *ClientResponse) {
 	}
 
 	m.Meta = a.Meta
-	if err := m.Write(appDB); err != nil {
+	if err := m.Write(store); err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
 			Type:      a.FailureType(),
@@ -437,13 +437,13 @@ func (FetchPrimersAction) Parse(reqId string, data json.RawMessage) ClientReques
 
 func (a *FetchPrimersAction) Exec() (res *ClientResponse) {
 	var (
-		primers []*archive.Primer
+		primers []*core.Primer
 		err     error
 	)
 	if a.BaseOnly {
-		primers, err = archive.BasePrimers(appDB, 50, 0)
+		primers, err = core.BasePrimers(appDB, 50, 0)
 	} else {
-		primers, err = archive.ListPrimers(store, 50, 0)
+		primers, err = core.ListPrimers(store, 50, 0)
 	}
 	if err != nil {
 		log.Info(err.Error())
@@ -479,7 +479,7 @@ func (FetchPrimerAction) Parse(reqId string, data json.RawMessage) ClientRequest
 }
 
 func (a *FetchPrimerAction) Exec() (res *ClientResponse) {
-	p := &archive.Primer{Id: a.Id}
+	p := &core.Primer{Id: a.Id}
 	if err := p.Read(store); err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
@@ -534,7 +534,7 @@ func (FetchSourcesAction) Parse(reqId string, data json.RawMessage) ClientReques
 }
 
 func (a *FetchSourcesAction) Exec() (res *ClientResponse) {
-	s, err := archive.ListSources(store, a.PageSize, (a.Page-1)*a.PageSize)
+	s, err := core.ListSources(store, a.PageSize, (a.Page-1)*a.PageSize)
 	if err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
@@ -572,7 +572,7 @@ func (FetchSourceAction) Parse(reqId string, data json.RawMessage) ClientRequest
 }
 
 func (a *FetchSourceAction) Exec() (res *ClientResponse) {
-	s := &archive.Source{Id: a.Id}
+	s := &core.Source{Id: a.Id}
 	if err := s.Read(store); err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
@@ -631,7 +631,7 @@ func (FetchSourceUrlsAction) Parse(reqId string, data json.RawMessage) ClientReq
 }
 
 func (a *FetchSourceUrlsAction) Exec() (res *ClientResponse) {
-	s := &archive.Source{Id: a.Id}
+	s := &core.Source{Id: a.Id}
 	if err := s.Read(store); err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
@@ -687,7 +687,7 @@ func (FetchSourceAttributedUrlsAction) Parse(reqId string, data json.RawMessage)
 }
 
 func (a *FetchSourceAttributedUrlsAction) Exec() (res *ClientResponse) {
-	s := &archive.Source{Id: a.Id}
+	s := &core.Source{Id: a.Id}
 	if err := s.Read(store); err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
@@ -736,7 +736,7 @@ func (FetchConsensusAction) Parse(reqId string, data json.RawMessage) ClientRequ
 }
 
 func (a *FetchConsensusAction) Exec() (res *ClientResponse) {
-	blocks, err := archive.MetadataBySubject(appDB, a.Subject)
+	blocks, err := core.MetadataBySubject(appDB, a.Subject)
 	if err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
@@ -746,7 +746,7 @@ func (a *FetchConsensusAction) Exec() (res *ClientResponse) {
 		}
 	}
 
-	c, values, err := archive.SumConsensus(a.Subject, blocks)
+	c, values, err := core.SumConsensus(a.Subject, blocks)
 	if err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
@@ -796,7 +796,7 @@ func (FetchCollectionsAction) Parse(reqId string, data json.RawMessage) ClientRe
 }
 
 func (a *FetchCollectionsAction) Exec() (res *ClientResponse) {
-	collections, err := archive.ListCollections(store, 50, 0)
+	collections, err := core.ListCollections(store, 50, 0)
 	if err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
@@ -834,7 +834,7 @@ func (UserCollectionsAction) Parse(reqId string, data json.RawMessage) ClientReq
 }
 
 func (a *UserCollectionsAction) Exec() (res *ClientResponse) {
-	collections, err := archive.CollectionsByCreator(store, a.Creator, "created DESC", a.PageSize, (a.Page-1)*a.PageSize)
+	collections, err := core.CollectionsByCreator(store, a.Creator, "created DESC", a.PageSize, (a.Page-1)*a.PageSize)
 	if err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
@@ -870,7 +870,7 @@ func (FetchCollectionAction) Parse(reqId string, data json.RawMessage) ClientReq
 }
 
 func (a *FetchCollectionAction) Exec() (res *ClientResponse) {
-	c := &archive.Collection{Id: a.Id}
+	c := &core.Collection{Id: a.Id}
 	if err := c.Read(store); err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
@@ -891,7 +891,7 @@ func (a *FetchCollectionAction) Exec() (res *ClientResponse) {
 // SaveCollectionAction triggers archiving a url
 type SaveCollectionAction struct {
 	ReqAction
-	Collection *archive.Collection `json:"collection"`
+	Collection *core.Collection `json:"collection"`
 }
 
 func (SaveCollectionAction) Type() string        { return "COLLECTION_SAVE_REQUEST" }
@@ -927,7 +927,7 @@ func (a *SaveCollectionAction) Exec() (res *ClientResponse) {
 // DeleteCollectionAction triggers archiving a url
 type DeleteCollectionAction struct {
 	ReqAction
-	// Collection *archive.Collection `json:"collection"`
+	// Collection *core.Collection `json:"collection"`
 	Id string `json:"id"`
 }
 
@@ -943,7 +943,7 @@ func (DeleteCollectionAction) Parse(reqId string, data json.RawMessage) ClientRe
 }
 
 func (a *DeleteCollectionAction) Exec() (res *ClientResponse) {
-	c := &archive.Collection{Id: a.Id}
+	c := &core.Collection{Id: a.Id}
 	if err := c.Delete(store); err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
@@ -981,7 +981,7 @@ func (CollectionItemsAction) Parse(reqId string, data json.RawMessage) ClientReq
 }
 
 func (a *CollectionItemsAction) Exec() (res *ClientResponse) {
-	c := archive.Collection{Id: a.CollectionId}
+	c := core.Collection{Id: a.CollectionId}
 
 	items, err := c.ReadItems(store, "created DESC", a.PageSize, (a.Page-1)*a.PageSize)
 	if err != nil {
@@ -1008,7 +1008,7 @@ func (a *CollectionItemsAction) Exec() (res *ClientResponse) {
 type SaveCollectionItemsAction struct {
 	ReqAction
 	CollectionId string
-	Items        []*archive.CollectionItem
+	Items        []*core.CollectionItem
 }
 
 func (SaveCollectionItemsAction) Type() string        { return "COLLECTION_SAVE_ITEMS_REQUEST" }
@@ -1023,7 +1023,7 @@ func (SaveCollectionItemsAction) Parse(reqId string, data json.RawMessage) Clien
 }
 
 func (a *SaveCollectionItemsAction) Exec() (res *ClientResponse) {
-	c := archive.Collection{Id: a.CollectionId}
+	c := core.Collection{Id: a.CollectionId}
 	if err := c.SaveItems(store, a.Items); err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
@@ -1050,7 +1050,7 @@ func (a *SaveCollectionItemsAction) Exec() (res *ClientResponse) {
 type DeleteCollectionItemsAction struct {
 	ReqAction
 	CollectionId string
-	Items        []*archive.CollectionItem
+	Items        []*core.CollectionItem
 }
 
 func (DeleteCollectionItemsAction) Type() string        { return "COLLECTION_DELETE_ITEMS_REQUEST" }
@@ -1065,7 +1065,7 @@ func (DeleteCollectionItemsAction) Parse(reqId string, data json.RawMessage) Cli
 }
 
 func (a *DeleteCollectionItemsAction) Exec() (res *ClientResponse) {
-	c := archive.Collection{Id: a.CollectionId}
+	c := core.Collection{Id: a.CollectionId}
 	if err := c.DeleteItems(store, a.Items); err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{
@@ -1108,7 +1108,7 @@ func (MetadataByKeyRequest) Parse(reqId string, data json.RawMessage) ClientRequ
 }
 
 func (a *MetadataByKeyRequest) Exec() (res *ClientResponse) {
-	results, err := archive.MetadataByKey(appDB, a.Key, a.PageSize, (a.Page-1)*a.PageSize)
+	results, err := core.MetadataByKey(appDB, a.Key, a.PageSize, (a.Page-1)*a.PageSize)
 	if err != nil {
 		log.Info(err.Error())
 		return &ClientResponse{

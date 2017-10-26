@@ -3,7 +3,8 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"github.com/datatogether/archive"
+	"github.com/datatogether/core"
+	"github.com/ipfs/go-datastore"
 	"time"
 )
 
@@ -45,7 +46,7 @@ func (c *Client) ArchiveUrl(db *sql.DB, reqId, url string) {
 	}
 
 	log.Info("archiving %s", url)
-	u := &archive.Url{Url: url}
+	u := &core.Url{Url: url}
 	if _, err := u.ParsedUrl(); err != nil {
 		log.Info(err.Error())
 		c.SendResponse(&ClientResponse{
@@ -57,7 +58,7 @@ func (c *Client) ArchiveUrl(db *sql.DB, reqId, url string) {
 	}
 
 	if err := u.Read(store); err != nil {
-		if err == archive.ErrNotFound {
+		if err == core.ErrNotFound {
 			if err := u.Save(store); err != nil {
 				log.Info(err.Error())
 				c.SendResponse(&ClientResponse{
@@ -87,17 +88,7 @@ func (c *Client) ArchiveUrl(db *sql.DB, reqId, url string) {
 	})
 
 	// Perform base GET request
-	links, err := u.Get(appDB, func(err error) {
-		if err != nil {
-			log.Info(err.Error())
-			c.SendResponse(&ClientResponse{
-				Type:      "URL_ARCHIVE_ERROR",
-				RequestId: reqId,
-				Error:     fmt.Sprintf("error getting url: %s", err.Error()),
-			})
-			return
-		}
-	})
+	_, links, err := u.Get(store)
 	if err != nil {
 		log.Info(err.Error())
 		c.SendResponse(&ClientResponse{
@@ -116,7 +107,7 @@ func (c *Client) ArchiveUrl(db *sql.DB, reqId, url string) {
 		Data:      links,
 	})
 
-	go func(db *sql.DB, links []*archive.Link) {
+	go func(db *sql.DB, links []*core.Link) {
 		// GET each destination link from this page in parallel
 		for _, l := range links {
 			// need a sleep here to avoid bombing server with requests
@@ -133,27 +124,7 @@ func (c *Client) ArchiveUrl(db *sql.DB, reqId, url string) {
 				},
 			})
 
-			if _, err := l.Dst.Get(db, func(err error) {
-				if err != nil {
-					c.SendResponse(&ClientResponse{
-						Type:      "URL_SET_ERROR",
-						RequestId: "server",
-						Data: map[string]interface{}{
-							"url":   l.Dst.Url,
-							"error": err.Error(),
-						},
-					})
-				}
-				c.SendResponse(&ClientResponse{
-					Type:      "URL_SET_SUCCESS",
-					RequestId: "server",
-					Data: map[string]interface{}{
-						"url":     l.Dst.Url,
-						"success": true,
-					},
-				})
-				// taskDone(err)
-			}); err != nil {
+			if _, _, err := l.Dst.Get(store); err != nil {
 				log.Info(err.Error())
 				c.SendResponse(&ClientResponse{
 					Type:      "URL_SET_ERROR",
@@ -164,20 +135,29 @@ func (c *Client) ArchiveUrl(db *sql.DB, reqId, url string) {
 					},
 				})
 			}
+
+			c.SendResponse(&ClientResponse{
+				Type:      "URL_SET_SUCCESS",
+				RequestId: "server",
+				Data: map[string]interface{}{
+					"url":     l.Dst.Url,
+					"success": true,
+				},
+			})
 		}
 	}(db, links)
 }
 
 // ArchiveUrl GET's a url and if it's an HTML page, any links it directly references
-func ArchiveUrl(db *sql.DB, url string, done func(err error)) (*archive.Url, []*archive.Link, error) {
-	u := &archive.Url{Url: url}
+func ArchiveUrl(db *sql.DB, url string, done func(err error)) (*core.Url, []*core.Link, error) {
+	u := &core.Url{Url: url}
 	if _, err := u.ParsedUrl(); err != nil {
 		done(err)
 		return nil, nil, err
 	}
 
 	if err := u.Read(store); err != nil {
-		if err == archive.ErrNotFound {
+		if err == core.ErrNotFound {
 			if err := u.Save(store); err != nil {
 				done(err)
 				return nil, nil, err
@@ -189,11 +169,7 @@ func ArchiveUrl(db *sql.DB, url string, done func(err error)) (*archive.Url, []*
 	}
 
 	// Perform GET request
-	links, err := u.Get(db, func(err error) {
-		if err != nil {
-			done(err)
-		}
-	})
+	_, links, err := u.Get(store)
 	if err != nil {
 		done(err)
 		return u, links, err
@@ -201,22 +177,20 @@ func ArchiveUrl(db *sql.DB, url string, done func(err error)) (*archive.Url, []*
 
 	tasks := len(links)
 	errs := make(chan error, tasks)
-	taskDone := func(err error) {
-		errs <- err
-	}
 
-	go func(db *sql.DB, links []*archive.Link) {
+	go func(store datastore.Datastore, links []*core.Link) {
 		// GET each destination link from this page in parallel
 		for _, l := range links {
-			if _, err := l.Dst.Get(db, taskDone); err != nil {
+			if _, _, err := l.Dst.Get(store); err != nil {
 				log.Info(err.Error())
 			}
+			errs <- nil
 
 			// need a sleep here to avoid bombing server with requests
 			// tooooo hard
 			time.Sleep(time.Second * 3)
 		}
-	}(db, links)
+	}(store, links)
 
 	go func() {
 		for i := 0; i < tasks; i++ {
@@ -232,7 +206,7 @@ func ArchiveUrl(db *sql.DB, url string, done func(err error)) (*archive.Url, []*
 	return u, links, err
 }
 
-func ArchiveUrlSync(db *sql.DB, url string) (*archive.Url, error) {
+func ArchiveUrlSync(db *sql.DB, url string) (*core.Url, error) {
 	done := make(chan error)
 	u, _, err := ArchiveUrl(db, url, func(err error) {
 		done <- err
