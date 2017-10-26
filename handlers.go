@@ -12,6 +12,14 @@ import (
 // see homeHandler for an example
 var templates *template.Template
 
+// HealthCheckHandler is a basic "hey I'm fine" for load balancers & co
+// TODO - add Database connection & proper configuration checks here for more accurate
+// health reporting
+func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{ "status" : 200 }`))
+}
+
 func UserProfileHandler(w http.ResponseWriter, r *http.Request) {
 	renderTemplate(w, "profile.html", map[string]interface{}{
 		"User": map[string]string{
