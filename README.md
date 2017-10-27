@@ -33,4 +33,4 @@ and Pull Requests (PRs) for [submitting changes](https://github.com/datatogether
 
 ## Usage & Development
 
-Because patchbay supports actions defined in [webapp](https://github.com/datatogether/webapp), the two repos are tightly coupled. The best way to see & work with patchbay is to run is as a backing service for webapp. Webapp development instructions are a great way to get started!
+Because patchbay supports actions defined in [webapp](https://github.com/datatogether/webapp), the two repos are tightly coupled. The best way to see & work with patchbay is to run it as a backing service for webapp. Webapp's [development instructions](https://github.com/datatogether/webapp/#development) are a great way to get started!
