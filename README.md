@@ -12,7 +12,7 @@ We structure this entire websocket integration as a protocol upgrade above the [
 
 ## License & Copyright
 
-Copyright (C) 2017 Data Together.
+Copyright (C) 2017 Data Together.  
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU Affero General Public License as published by the Free Software
 Foundation, version 3.0.
