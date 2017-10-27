@@ -1,12 +1,14 @@
 # Patchbay
 
-<!-- Repo Badges for: Github Project, Slack, License-->
-
 [![GitHub](https://img.shields.io/badge/project-Data_Together-487b57.svg?style=flat-square)](http://github.com/datatogether)
 [![Slack](https://img.shields.io/badge/slack-Archivers-b44e88.svg?style=flat-square)](https://archivers-slack.herokuapp.com/)
 [![License](https://img.shields.io/github/license/datatogether/patchbay.svg)](./LICENSE)
 [![Codecov](https://img.shields.io/codecov/c/github/datatogether/patchbay.svg)](https://circleci.com/gh/datatogether/patchbay) 
 [![CI](https://img.shields.io/circleci/project/github/datatogether/patchbay.svg)](https://codecov.io/gh/datatogether/patchbay)
+
+Patchbay is a websockets-based API backend for our react & redux-based [webapp](https://github.com/datatogether/webapp). Patchbay carries react _actions_ onto the server, allowing duplexed communication between webapp clients & the react server. The server is able to fire native react actions that redux will handle. We use this for reporting the progress of backend services like the completion of [task_mgmt tasks](https://github.com/datatogether/task_mgmt) via a redis pub-sub connection, leave open the option for cross-user interactions using patchbay as the coordinating server.
+
+We structure this entire websocket integration as a protocol upgrade above the [api service](https://github.com/datatogether/api). From the webapp perspective, it should be possible to have patchbay explode in a glorious ball of fire, and fall back to using api endpoints without interruption to the user.
 
 ## License & Copyright
 
@@ -29,10 +31,6 @@ to submit changes, please see our [Contributing Guidelines](./CONTRIBUTING.md).
 We use GitHub issues for [tracking bugs and feature requests](https://github.com/datatogether/patchbay/issues) 
 and Pull Requests (PRs) for [submitting changes](https://github.com/datatogether/patchbay/pulls)
 
-## Development
+## Usage & Development
 
-Actual Instructions coming soon
-
-## Deployment
-
-Actual instructions coming soon
+Because patchbay supports actions defined in [webapp](https://github.com/datatogether/webapp), the two repos are tightly coupled. The best way to see & work with patchbay is to run is as a backing service for webapp. Webapp development instructions are a great way to get started!
