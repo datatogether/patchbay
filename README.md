@@ -6,14 +6,14 @@
 [![Codecov](https://img.shields.io/codecov/c/github/datatogether/patchbay.svg?style=flat-square)](https://circleci.com/gh/datatogether/patchbay) 
 [![CI](https://img.shields.io/circleci/project/github/datatogether/patchbay.svg?style=flat-square)](https://codecov.io/gh/datatogether/patchbay)
 
-Patchbay is a websockets-based API backend for our react & redux-based [webapp](https://github.com/datatogether/webapp). Patchbay carries react _actions_ onto the server, allowing duplexed communication between webapp clients & the react server. The server is able to fire native react actions that redux will handle. We use this for reporting the progress of backend services like the completion of [task_mgmt tasks](https://github.com/datatogether/task_mgmt) via a redis pub-sub connection, leave open the option for cross-user interactions using patchbay as the coordinating server.
+Patchbay is a websockets-based API backend for our React & Redux-based [webapp](https://github.com/datatogether/webapp). Patchbay carries React _actions_ onto the server, allowing duplexed communication between webapp clients & the React server. The server is able to fire native React actions that Redux will handle. We use this for reporting the progress of backend services like the completion of [task_mgmt tasks](https://github.com/datatogether/task_mgmt) via a [Redis](https://redis.io) pub-sub connection, leave open the option for cross-user interactions using patchbay as the coordinating server.
 
 We structure this entire websocket integration as a protocol upgrade above the [api service](https://github.com/datatogether/api). From the webapp perspective, it should be possible to have patchbay explode in a glorious ball of fire, and fall back to using api endpoints without interruption to the user.
 
 ## License & Copyright
 
-Copyright (C) 2017 Data Together  
-This program is free software: you can redistribute it and/or modify it under
+Copyright (C) 2017 Data Together.  
+This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU Affero General Public License as published by the Free Software
 Foundation, version 3.0.
 
@@ -29,7 +29,7 @@ We would love involvement from more people! If you notice any errors or would li
 to submit changes, please see our [Contributing Guidelines](./CONTRIBUTING.md). 
 
 We use GitHub issues for [tracking bugs and feature requests](https://github.com/datatogether/patchbay/issues) 
-and Pull Requests (PRs) for [submitting changes](https://github.com/datatogether/patchbay/pulls)
+and Pull Requests (PRs) for [submitting changes](https://github.com/datatogether/patchbay/pulls).
 
 ## Usage 
 
